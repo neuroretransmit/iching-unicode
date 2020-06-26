@@ -22,7 +22,7 @@ DEFAULT_BASE_IDX_TABLE = {
 BASE_IDX_TABLE = DEFAULT_BASE_IDX_TABLE.copy()
 
 parser = argparse.ArgumentParser(description='Hide messages in I Ching hexagrams')
-parser.add_argument('-b', '--base', help='target base [16, 32, 64, 84]', type=int, default=64)
+parser.add_argument('-b', '--base', help='target base [16, 32, 64]', type=int, default=64)
 parser.add_argument('-s', '--shuffle', help='shuffle base index table', nargs='?', const=True, default=False)
 parser.add_argument('-e', '--encrypt', help='encrypt message')
 parser.add_argument('-d', '--decrypt', help='decrypt message')
