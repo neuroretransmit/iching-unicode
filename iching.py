@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
+import random
 from argparse import ArgumentParser, ArgumentTypeError
 from base64 import b16encode, b16decode, b32encode, b32decode, b64encode, b64decode
-import random
 from os import environ
 from sys import stderr, stdout, platform
 

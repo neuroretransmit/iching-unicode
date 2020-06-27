@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-from base64 import b16encode, b32encode, b64encode
 import unittest
+from base64 import b16encode, b32encode, b64encode
 
 from iching import encrypt, decrypt, B16, B32, B64, ENCODING, DEFAULT_BASE_CHARSET, HEXAGRAMS
 
