@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from base64 import b16encode, b32encode, b64encode
 import unittest
 
