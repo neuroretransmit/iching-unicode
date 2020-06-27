@@ -28,7 +28,7 @@ parser.add_argument('-oh', '--offset-hexagrams', help='offset hexagram slice for
 ns = parser.parse_args()
 
 
-def decrypt(encrypted, base, decryption_key, hexagram_offset=0):
+def decrypt(encrypted, base, decryption_key=None, hexagram_offset=0):
     try:
         hexagrams_slice = HEXAGRAMS[hexagram_offset: hexagram_offset + base]
         mapping = dict(zip(hexagrams_slice, decryption_key if decryption_key else DEFAULT_BASE_CHARSET[base]))
