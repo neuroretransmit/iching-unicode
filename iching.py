@@ -21,13 +21,14 @@ parser.add_argument('-s', '--shuffle', help='shuffle base index table', nargs='?
 parser.add_argument('-e', '--encrypt', help='encrypt message')
 parser.add_argument('-d', '--decrypt', help='decrypt message')
 parser.add_argument('-k', '--key', help='key for decryption', default=None)
+parser.add_argument('-oh', '--offset-hexagrams', help='offset hexagram slice for base [16, 32]',
+                    nargs='?', const=True, default=False)
 ns = parser.parse_args()
 
 
-def decrypt(encrypted, base, decryption_key):
+def decrypt(encrypted, base, decryption_key, hexagram_offset=0):
     try:
-        # TODO: Pick random offset to slice at
-        hexagrams_slice = HEXAGRAMS[:base]
+        hexagrams_slice = HEXAGRAMS[hexagram_offset: hexagram_offset + base]
         mapping = dict(zip(hexagrams_slice, decryption_key if decryption_key else DEFAULT_BASE_CHARSET[base]))
         decrypted = encrypted.decode('utf-8')
         for hexagram in set(decrypted):
@@ -43,15 +44,21 @@ def decrypt(encrypted, base, decryption_key):
             decrypted += '=' * ((4 - len(decrypted) % 4) % 4)
             return b64decode(decrypted).decode('utf-8')
     except ValueError:
-        stderr.write("Invalid key length or base selection")
+        stderr.write("ERROR: Invalid key length or base selection\n")
+        exit(1)
+    except KeyError:
+        stderr.write("ERROR: Invalid offset or key\n")
+        exit(1)
 
 
-def encrypt(secret, base, shuffle):
+def encrypt(secret, base, shuffle=False, offset_hexagrams=False):
     encryption_key = DEFAULT_BASE_CHARSET[base]
     if shuffle:
         encryption_key = ''.join(random.sample(DEFAULT_BASE_CHARSET[base], base))
-    # TODO: Pick random offset to slice at
-    hexagrams_slice = HEXAGRAMS[:base]
+    hexagram_offset = 0
+    if offset_hexagrams:
+        hexagram_offset = random.randint(0, 64 - base)
+    hexagrams_slice = HEXAGRAMS[hexagram_offset: hexagram_offset + base]
     if base == 16:
         encrypted = b16encode(secret).decode('utf-8')
     elif base == 32:
@@ -63,25 +70,29 @@ def encrypt(secret, base, shuffle):
     mapping = dict(zip(encryption_key, hexagrams_slice))
     for letter in set(encrypted):
         encrypted = encrypted.replace(letter, mapping[letter])
-    return encrypted, encryption_key
+    return encrypted, encryption_key, hexagram_offset
 
 
-def validate_and_commit_args():
+def validate_args():
     if not ns.encrypt and not ns.decrypt:
         parser.print_help(stderr)
     elif ns.encrypt and ns.decrypt:
-        stderr.write("ERROR: Can't encode and decode simultaneously\n")
+        raise ArgumentTypeError("Can't encode and decode simultaneously\n")
     bases = DEFAULT_BASE_CHARSET.keys()
     if ns.base not in bases:
-        raise ArgumentTypeError('base must be one of %s' % bases)
+        raise ArgumentTypeError('Base must be one of %s' % bases)
+    if ns.offset_hexagrams and ns.base == 64:
+        raise ArgumentTypeError('Base64 can\'t be offset')
 
 
 if __name__ == "__main__":
-    validate_and_commit_args()
+    validate_args()
     if ns.encrypt:
-        data, key = encrypt(bytes(ns.encrypt, 'utf-8'), ns.base, ns.shuffle)
+        data, key, offset = encrypt(bytes(ns.encrypt, 'utf-8'), ns.base, ns.shuffle, ns.offset_hexagrams)
         if ns.shuffle:
-            stderr.write("KEY: %s\n" % key)
+            stderr.write("Key: %s\n" % key)
+        if ns.offset_hexagrams:
+            stderr.write("Hexagram Offset: %d\n" % offset)
         print(data)
     elif ns.decrypt:
-        print(decrypt(bytes(ns.decrypt, 'utf-8'), ns.base, ns.key))
+        print(decrypt(bytes(ns.decrypt, 'utf-8'), ns.base, ns.key, int(ns.offset_hexagrams)))
