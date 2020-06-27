@@ -21,10 +21,8 @@ DEFAULT_BASE_CHARSET = {
 
 class ANSIColors:
     HEADER = '\033[95m'
-    WARNING = '\033[93m'
     FAIL = '\033[91m'
     ENDC = '\033[0m'
-    BOLD = '\033[1m'
 
 
 parser = ArgumentParser(description='Hide messages in I Ching hexagrams')
@@ -35,10 +33,13 @@ parser.add_argument('-d', '--decrypt', help='decrypt message')
 parser.add_argument('-k', '--key', help='key for decryption', default=None)
 parser.add_argument('-oh', '--offset-hexagrams', help='offset hexagram slice for base [16, 32]',
                     nargs='?', const=True, default=False)
+parser.add_argument('-rh', '--randomize-hexagrams', help='randomize hexagram order',
+                    nargs='?', const=True, default=False)
+parser.add_argument('-hk', '--hexagram-key', help='hexagram key for decryption', default=None)
 ns = parser.parse_args()
 
 
-def decrypt(encrypted, base, decryption_key=None, hexagram_offset=0):
+def decrypt(encrypted, base, decryption_key=None, hexagram_offset=0, hexagram_key=None):
     """
     Decrypt encrypted byte stream using different base systems. Optionally, provide the base
     index key and hexagram offset if encrypted with them.
@@ -46,10 +47,11 @@ def decrypt(encrypted, base, decryption_key=None, hexagram_offset=0):
     :param base: target base system
     :param decryption_key: index key for base system
     :param hexagram_offset: shift to use when slicing hexagrams for base16/base32
+    :param hexagram_key: index key for hexagrams
     :return: decrypted message
     """
     try:
-        hexagrams_slice = HEXAGRAMS[hexagram_offset: hexagram_offset + base]
+        hexagrams_slice = HEXAGRAMS[hexagram_offset: hexagram_offset + base] if not hexagram_key else hexagram_key
         mapping = dict(zip(hexagrams_slice, decryption_key if decryption_key else DEFAULT_BASE_CHARSET[base]))
         decrypted = encrypted.decode(ENCODING)
         for hexagram in set(decrypted):
@@ -68,7 +70,7 @@ def decrypt(encrypted, base, decryption_key=None, hexagram_offset=0):
         printerr_fail("Invalid offset or key")
 
 
-def encrypt(secret, base, shuffle=False, offset_hexagrams=False):
+def encrypt(secret, base, shuffle=False, offset_hexagrams=False, randomize_hexagrams=False):
     """
     Encrypt bytes using different base systems. Optionally, shuffle the base index key and
     shift the hexagrams slice for base16/base32.
@@ -76,6 +78,7 @@ def encrypt(secret, base, shuffle=False, offset_hexagrams=False):
     :param base: target base system
     :param shuffle: shuffle index key
     :param offset_hexagrams: randomly shift where hexagrams are sliced
+    :param randomize_hexagrams: randomize hexagram slice
     :return: encrypted unicode hexagrams
     """
     encryption_key = DEFAULT_BASE_CHARSET[base]
@@ -85,6 +88,8 @@ def encrypt(secret, base, shuffle=False, offset_hexagrams=False):
     if offset_hexagrams:
         hexagram_offset = random.randint(0, B64 - base)
     hexagrams_slice = HEXAGRAMS[hexagram_offset: hexagram_offset + base]
+    if randomize_hexagrams:
+        hexagrams_slice = ''.join(random.sample(hexagrams_slice, base))
     if base == B16:
         encrypted = b16encode(secret).decode(ENCODING)
     elif base == B32:
@@ -96,7 +101,7 @@ def encrypt(secret, base, shuffle=False, offset_hexagrams=False):
     mapping = dict(zip(encryption_key, hexagrams_slice))
     for letter in set(encrypted):
         encrypted = encrypted.replace(letter, mapping[letter])
-    return encrypted, encryption_key, hexagram_offset
+    return encrypted, encryption_key, hexagram_offset, hexagrams_slice
 
 
 def color_supported():
@@ -157,11 +162,23 @@ def validate_args():
 if __name__ == "__main__":
     validate_args()
     if ns.encrypt:
-        data, key, offset = encrypt(bytes(ns.encrypt, ENCODING), ns.base, ns.shuffle, ns.offset_hexagrams)
+        data, key, offset, hexagram_key = encrypt(
+            secret=bytes(ns.encrypt, ENCODING),
+            base=ns.base,
+            shuffle=ns.shuffle,
+            offset_hexagrams=ns.offset_hexagrams,
+            randomize_hexagrams=ns.randomize_hexagrams)
         if ns.shuffle:
             printerr_important('Key: %s' % key)
         if ns.offset_hexagrams:
             printerr_important('Hexagram Offset: %s' % offset)
+        if ns.randomize_hexagrams:
+            printerr_important('Hexagram Key: %s' % hexagram_key)
         print(data)
     elif ns.decrypt:
-        print(decrypt(bytes(ns.decrypt, ENCODING), ns.base, ns.key, int(ns.offset_hexagrams)))
+        print(decrypt(
+            encrypted=bytes(ns.decrypt, ENCODING),
+            base=ns.base,
+            decryption_key=ns.key,
+            hexagram_offset=int(ns.offset_hexagrams),
+            hexagram_key=ns.hexagram_key))

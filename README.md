@@ -47,7 +47,7 @@ $ # Encoding
 $ ./iching.py -e 'test'
 ䷝䷆䷕䷳䷝䷀
 $ # Decoding
-$ ./iching.py -d '䷝䷆䷕䷳䷝䷀'`
+$ ./iching.py -d '䷝䷆䷕䷳䷝䷀'
 test
 ```
 
