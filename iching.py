@@ -7,11 +7,8 @@ from os import environ
 from sys import stderr, stdout, platform
 
 ENCODING = 'utf-8'
-
-# King Wen hexagram order
 HEXAGRAMS = '䷀䷁䷂䷃䷄䷅䷆䷇䷈䷉䷊䷋䷌䷍䷎䷏䷐䷑䷒䷓䷔䷕䷖䷗䷘䷙䷚䷛䷜䷝䷞䷟' \
             '䷠䷡䷢䷣䷤䷥䷦䷧䷨䷩䷪䷫䷬䷭䷮䷯䷰䷱䷲䷳䷴䷵䷶䷷䷸䷹䷺䷻䷼䷽䷾䷿'
-
 B16 = 16
 B32 = 32
 B64 = 64
@@ -42,6 +39,15 @@ ns = parser.parse_args()
 
 
 def decrypt(encrypted, base, decryption_key=None, hexagram_offset=0):
+    """
+    Decrypt encrypted byte stream using different base systems. Optionally, provide the base
+    index key and hexagram offset if encrypted with them.
+    :param encrypted: encrypted bytes
+    :param base: target base system
+    :param decryption_key: index key for base system
+    :param hexagram_offset: shift to use when slicing hexagrams for base16/base32
+    :return: decrypted message
+    """
     try:
         hexagrams_slice = HEXAGRAMS[hexagram_offset: hexagram_offset + base]
         mapping = dict(zip(hexagrams_slice, decryption_key if decryption_key else DEFAULT_BASE_CHARSET[base]))
@@ -63,6 +69,15 @@ def decrypt(encrypted, base, decryption_key=None, hexagram_offset=0):
 
 
 def encrypt(secret, base, shuffle=False, offset_hexagrams=False):
+    """
+    Encrypt bytes using different base systems. Optionally, shuffle the base index key and
+    shift the hexagrams slice for base16/base32.
+    :param secret: secret bytes
+    :param base: target base system
+    :param shuffle: shuffle index key
+    :param offset_hexagrams: randomly shift where hexagrams are sliced
+    :return: encrypted unicode hexagrams
+    """
     encryption_key = DEFAULT_BASE_CHARSET[base]
     if shuffle:
         encryption_key = ''.join(random.sample(DEFAULT_BASE_CHARSET[base], base))
@@ -85,13 +100,20 @@ def encrypt(secret, base, shuffle=False, offset_hexagrams=False):
 
 
 def color_supported():
-    plat = platform
-    supported_platform = plat != 'Pocket PC' and (plat != 'win32' or 'ANSICON' in environ)
+    """
+    Does the console support colored output
+    :return: True or False
+    """
+    supported_platform = platform != 'Pocket PC' and (platform != 'win32' or 'ANSICON' in environ)
     is_a_tty = hasattr(stdout, 'isatty') and stdout.isatty()
     return supported_platform and is_a_tty
 
 
 def printerr_fail(message):
+    """
+    Print error message to stderr (with or without color support) and exit with error code.
+    :param message:
+    """
     if not color_supported():
         stderr.write("ERROR: %s\n" % message)
     else:
@@ -102,6 +124,10 @@ def printerr_fail(message):
 
 
 def printerr_important(message):
+    """
+    Print important data to stderr (with or without color support)
+    :param message:
+    """
     if not color_supported():
         stderr.write(message + "\n")
     else:
@@ -111,6 +137,9 @@ def printerr_important(message):
 
 
 def validate_args():
+    """
+    Validate command line arguments
+    """
     try:
         if not ns.encrypt and not ns.decrypt:
             parser.print_help(stderr)
