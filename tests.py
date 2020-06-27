@@ -1,9 +1,19 @@
 from base64 import b16encode, b32encode, b64encode
 import unittest
 
-from iching import encrypt, decrypt, DEFAULT_BASE_CHARSET, HEXAGRAMS
+from iching import encrypt, decrypt, ENCODING, DEFAULT_BASE_CHARSET, HEXAGRAMS
 
-TEST_MESSAGE = bytes('test', 'utf-8')
+TEST_MESSAGE = bytes('test', ENCODING)
+
+
+def encode_and_translate(base, encryption_key):
+    if base == 16:
+        message = b16encode(TEST_MESSAGE).decode(ENCODING)
+    elif base == 32:
+        message = b32encode(TEST_MESSAGE).decode(ENCODING).replace('=', '')
+    elif base == 64:
+        message = b64encode(TEST_MESSAGE).decode(ENCODING).replace('=', '')
+    return message.translate(str.maketrans(encryption_key, DEFAULT_BASE_CHARSET[base]))
 
 
 class BaseTest:
@@ -27,122 +37,116 @@ class BaseTest:
 
 
 class B16MessageEncryptionTests(unittest.TestCase, BaseTest):
+    BASE = 16
+
     def test_encrypt(self):
-        actual, _, _ = encrypt(TEST_MESSAGE, 16, False)
-        expected = b16encode(TEST_MESSAGE).decode('utf-8')
-        mapping = dict(zip(DEFAULT_BASE_CHARSET[16], HEXAGRAMS[:16]))
+        actual, _, _ = encrypt(TEST_MESSAGE, self.BASE, False)
+        expected = b16encode(TEST_MESSAGE).decode(ENCODING)
+        mapping = dict(zip(DEFAULT_BASE_CHARSET[self.BASE], HEXAGRAMS[:self.BASE]))
         for letter in set(expected):
             expected = expected.replace(letter, mapping[letter])
         self.assertEqual(actual, expected)
 
     def test_encrypt_keyed(self):
-        actual, encryption_key, _ = encrypt(TEST_MESSAGE, 16, True)
-        iching_slice = HEXAGRAMS[:16]
-        expected = b16encode(TEST_MESSAGE)
-        expected = bytes(expected)
-        trans = expected.maketrans(bytes(encryption_key, 'utf-8'), bytes(DEFAULT_BASE_CHARSET[16], 'utf-8'))
-        expected = expected.translate(trans)
-        mapping = dict(zip(encryption_key, iching_slice))
-        expected = expected.decode('utf-8').replace('=', '')
+        actual, encryption_key, _ = encrypt(TEST_MESSAGE, self.BASE, True)
+        hexagrams_slice = HEXAGRAMS[:self.BASE]
+        expected = encode_and_translate(self.BASE, encryption_key)
+        mapping = dict(zip(encryption_key, hexagrams_slice))
         for letter in set(expected):
             expected = expected.replace(letter, mapping[letter])
         self.assertEqual(actual, expected)
 
     def test_decrypt(self):
-        encrypted, _, _ = encrypt(TEST_MESSAGE, 16, False)
-        actual = decrypt(bytes(encrypted, 'utf-8'), 16, None)
-        self.assertEqual(TEST_MESSAGE.decode('utf-8'), actual)
+        encrypted, _, _ = encrypt(TEST_MESSAGE, self.BASE, False)
+        actual = decrypt(bytes(encrypted, ENCODING), self.BASE, None)
+        self.assertEqual(TEST_MESSAGE.decode(ENCODING), actual)
 
     def test_decrypt_keyed(self):
-        encrypted, encryption_key, _ = encrypt(TEST_MESSAGE, 16, True)
-        decrypted = decrypt(bytes(encrypted, 'utf-8'), 16, encryption_key)
-        self.assertEqual(TEST_MESSAGE.decode('utf-8'), decrypted)
+        encrypted, encryption_key, _ = encrypt(TEST_MESSAGE, self.BASE, True)
+        decrypted = decrypt(bytes(encrypted, ENCODING), self.BASE, encryption_key)
+        self.assertEqual(TEST_MESSAGE.decode(ENCODING), decrypted)
 
     def test_decrypt_offset(self):
-        encrypted, encryption_key, offset = encrypt(TEST_MESSAGE, 16, False, True)
-        decrypted = decrypt(bytes(encrypted, 'utf-8'), 16, encryption_key, offset)
-        self.assertEqual(TEST_MESSAGE.decode('utf-8'), decrypted)
+        encrypted, encryption_key, offset = encrypt(TEST_MESSAGE, self.BASE, False, True)
+        decrypted = decrypt(bytes(encrypted, ENCODING), self.BASE, encryption_key, offset)
+        self.assertEqual(TEST_MESSAGE.decode(ENCODING), decrypted)
 
     def test_decrypt_keyed_offset(self):
-        encrypted, encryption_key, offset = encrypt(TEST_MESSAGE, 16, True, True)
-        decrypted = decrypt(bytes(encrypted, 'utf-8'), 16, encryption_key, offset)
-        self.assertEqual(TEST_MESSAGE.decode('utf-8'), decrypted)
+        encrypted, encryption_key, offset = encrypt(TEST_MESSAGE, self.BASE, True, True)
+        decrypted = decrypt(bytes(encrypted, ENCODING), self.BASE, encryption_key, offset)
+        self.assertEqual(TEST_MESSAGE.decode(ENCODING), decrypted)
 
 
 class B32MessageEncryptionTests(unittest.TestCase, BaseTest):
+    BASE = 32
+
     def test_encrypt(self):
-        actual, _, _ = encrypt(TEST_MESSAGE, 32, False)
-        expected = b32encode(TEST_MESSAGE).decode('utf-8').replace('=', '')
-        mapping = dict(zip(DEFAULT_BASE_CHARSET[32], HEXAGRAMS[:32]))
+        actual, _, _ = encrypt(TEST_MESSAGE, self.BASE, False)
+        expected = b32encode(TEST_MESSAGE).decode(ENCODING).replace('=', '')
+        mapping = dict(zip(DEFAULT_BASE_CHARSET[self.BASE], HEXAGRAMS[:self.BASE]))
         for letter in set(expected):
             expected = expected.replace(letter, mapping[letter])
         self.assertEqual(actual, expected)
 
     def test_encrypt_keyed(self):
-        actual, encryption_key, _ = encrypt(TEST_MESSAGE, 32, True)
-        iching_slice = HEXAGRAMS[:32]
-        expected = b32encode(TEST_MESSAGE)
-        expected = bytes(expected)
-        trans = expected.maketrans(bytes(encryption_key, 'utf-8'), bytes(DEFAULT_BASE_CHARSET[32], 'utf-8'))
-        expected = expected.translate(trans)
-        mapping = dict(zip(encryption_key, iching_slice))
-        expected = expected.decode('utf-8').replace('=', '')
+        actual, encryption_key, _ = encrypt(TEST_MESSAGE, self.BASE, True)
+        hexagrams_slice = HEXAGRAMS[:self.BASE]
+        expected = encode_and_translate(self.BASE, encryption_key)
+        mapping = dict(zip(encryption_key, hexagrams_slice))
         for letter in set(expected):
             expected = expected.replace(letter, mapping[letter])
         self.assertEqual(actual, expected)
 
     def test_decrypt(self):
-        encrypted, _, _ = encrypt(TEST_MESSAGE, 32, False)
-        decrypted = decrypt(bytes(encrypted, 'utf-8'), 32, None)
-        self.assertEqual(TEST_MESSAGE.decode('utf-8'), decrypted)
+        encrypted, _, _ = encrypt(TEST_MESSAGE, self.BASE, False)
+        decrypted = decrypt(bytes(encrypted, ENCODING), self.BASE, None)
+        self.assertEqual(TEST_MESSAGE.decode(ENCODING), decrypted)
 
     def test_decrypt_keyed(self):
-        encrypted, encryption_key, _ = encrypt(TEST_MESSAGE, 32, True)
-        decrypted = decrypt(bytes(encrypted, 'utf-8'), 32, encryption_key)
-        self.assertEqual(TEST_MESSAGE.decode('utf-8'), decrypted)
+        encrypted, encryption_key, _ = encrypt(TEST_MESSAGE, self.BASE, True)
+        decrypted = decrypt(bytes(encrypted, ENCODING), self.BASE, encryption_key)
+        self.assertEqual(TEST_MESSAGE.decode(ENCODING), decrypted)
 
     def test_decrypt_offset(self):
-        encrypted, encryption_key, offset = encrypt(TEST_MESSAGE, 32, False, True)
-        decrypted = decrypt(bytes(encrypted, 'utf-8'), 32, encryption_key, offset)
-        self.assertEqual(TEST_MESSAGE.decode('utf-8'), decrypted)
+        encrypted, encryption_key, offset = encrypt(TEST_MESSAGE, self.BASE, False, True)
+        decrypted = decrypt(bytes(encrypted, ENCODING), self.BASE, encryption_key, offset)
+        self.assertEqual(TEST_MESSAGE.decode(ENCODING), decrypted)
 
     def test_decrypt_keyed_offset(self):
-        encrypted, encryption_key, offset = encrypt(TEST_MESSAGE, 32, True, True)
-        decrypted = decrypt(bytes(encrypted, 'utf-8'), 32, encryption_key, offset)
-        self.assertEqual(TEST_MESSAGE.decode('utf-8'), decrypted)
+        encrypted, encryption_key, offset = encrypt(TEST_MESSAGE, self.BASE, True, True)
+        decrypted = decrypt(bytes(encrypted, ENCODING), self.BASE, encryption_key, offset)
+        self.assertEqual(TEST_MESSAGE.decode(ENCODING), decrypted)
 
 
 class B64MessageEncryptionTests(unittest.TestCase, BaseTest):
+    BASE = 64
+
     def test_encrypt(self):
-        actual, _, _ = encrypt(TEST_MESSAGE, 64, False)
-        expected = b64encode(TEST_MESSAGE).decode('utf-8').replace('=', '')
-        mapping = dict(zip(DEFAULT_BASE_CHARSET[64], HEXAGRAMS))
+        actual, _, _ = encrypt(TEST_MESSAGE, self.BASE, False)
+        expected = b64encode(TEST_MESSAGE).decode(ENCODING).replace('=', '')
+        mapping = dict(zip(DEFAULT_BASE_CHARSET[self.BASE], HEXAGRAMS))
         for letter in set(expected):
             expected = expected.replace(letter, mapping[letter])
         self.assertEqual(actual, expected)
 
     def test_encrypt_keyed(self):
-        actual, encryption_key, _ = encrypt(TEST_MESSAGE, 64, True)
-        iching_slice = HEXAGRAMS[:64]
-        expected = b64encode(TEST_MESSAGE)
-        expected = bytes(expected)
-        trans = expected.maketrans(bytes(encryption_key, 'utf-8'), bytes(DEFAULT_BASE_CHARSET[64], 'utf-8'))
-        expected = expected.translate(trans)
-        mapping = dict(zip(encryption_key, iching_slice))
-        expected = expected.decode('utf-8').replace('=', '')
+        actual, encryption_key, _ = encrypt(TEST_MESSAGE, self.BASE, True)
+        hexagrams_slice = HEXAGRAMS[:self.BASE]
+        expected = encode_and_translate(self.BASE, encryption_key)
+        mapping = dict(zip(encryption_key, hexagrams_slice))
         for letter in set(expected):
             expected = expected.replace(letter, mapping[letter])
         self.assertEqual(actual, expected)
 
     def test_decrypt(self):
-        encrypted, _, _ = encrypt(TEST_MESSAGE, 64, False)
-        decrypted = decrypt(bytes(encrypted, 'utf-8'), 64, None)
-        self.assertEqual(TEST_MESSAGE.decode('utf-8'), decrypted)
+        encrypted, _, _ = encrypt(TEST_MESSAGE, self.BASE, False)
+        decrypted = decrypt(bytes(encrypted, ENCODING), self.BASE, None)
+        self.assertEqual(TEST_MESSAGE.decode(ENCODING), decrypted)
 
     def test_decrypt_keyed(self):
-        encrypted, encryption_key, _ = encrypt(TEST_MESSAGE, 64, True)
-        decrypted = decrypt(bytes(encrypted, 'utf-8'), 64, encryption_key)
-        self.assertEqual(TEST_MESSAGE.decode('utf-8'), decrypted)
+        encrypted, encryption_key, _ = encrypt(TEST_MESSAGE, self.BASE, True)
+        decrypted = decrypt(bytes(encrypted, ENCODING), self.BASE, encryption_key)
+        self.assertEqual(TEST_MESSAGE.decode(ENCODING), decrypted)
 
     @unittest.skip("Can't offset hexagrams for base64")
     def test_decrypt_offset(self):

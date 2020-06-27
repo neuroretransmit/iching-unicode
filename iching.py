@@ -5,6 +5,8 @@ from base64 import b16encode, b16decode, b32encode, b32decode, b64encode, b64dec
 import random
 from sys import stderr
 
+ENCODING = 'utf-8'
+
 # King Wen hexagram order
 HEXAGRAMS = '䷀䷁䷂䷃䷄䷅䷆䷇䷈䷉䷊䷋䷌䷍䷎䷏䷐䷑䷒䷓䷔䷕䷖䷗䷘䷙䷚䷛䷜䷝䷞䷟' \
             '䷠䷡䷢䷣䷤䷥䷦䷧䷨䷩䷪䷫䷬䷭䷮䷯䷰䷱䷲䷳䷴䷵䷶䷷䷸䷹䷺䷻䷼䷽䷾䷿'
@@ -30,19 +32,19 @@ def decrypt(encrypted, base, decryption_key, hexagram_offset=0):
     try:
         hexagrams_slice = HEXAGRAMS[hexagram_offset: hexagram_offset + base]
         mapping = dict(zip(hexagrams_slice, decryption_key if decryption_key else DEFAULT_BASE_CHARSET[base]))
-        decrypted = encrypted.decode('utf-8')
+        decrypted = encrypted.decode(ENCODING)
         for hexagram in set(decrypted):
             decrypted = decrypted.replace(hexagram, mapping[hexagram])
         if decryption_key:
             decrypted = decrypted.translate(str.maketrans(DEFAULT_BASE_CHARSET[base], decryption_key))
         if base == 16:
-            return b16decode(decrypted).decode('utf-8')
+            return b16decode(decrypted).decode(ENCODING)
         elif base == 32:
             decrypted += '=' * ((8 - (len(decrypted) % 8)) % 8)
-            return b32decode(decrypted).decode('utf-8')
+            return b32decode(decrypted).decode(ENCODING)
         elif base == 64:
             decrypted += '=' * ((4 - len(decrypted) % 4) % 4)
-            return b64decode(decrypted).decode('utf-8')
+            return b64decode(decrypted).decode(ENCODING)
     except ValueError:
         stderr.write("ERROR: Invalid key length or base selection\n")
         exit(1)
@@ -60,11 +62,11 @@ def encrypt(secret, base, shuffle=False, offset_hexagrams=False):
         hexagram_offset = random.randint(0, 64 - base)
     hexagrams_slice = HEXAGRAMS[hexagram_offset: hexagram_offset + base]
     if base == 16:
-        encrypted = b16encode(secret).decode('utf-8')
+        encrypted = b16encode(secret).decode(ENCODING)
     elif base == 32:
-        encrypted = b32encode(secret).decode('utf-8').replace('=', '')
+        encrypted = b32encode(secret).decode(ENCODING).replace('=', '')
     elif base == 64:
-        encrypted = b64encode(secret).decode('utf-8').replace('=', '')
+        encrypted = b64encode(secret).decode(ENCODING).replace('=', '')
     if shuffle:
         encrypted = encrypted.translate(str.maketrans(encryption_key, DEFAULT_BASE_CHARSET[base]))
     mapping = dict(zip(encryption_key, hexagrams_slice))
@@ -88,11 +90,11 @@ def validate_args():
 if __name__ == "__main__":
     validate_args()
     if ns.encrypt:
-        data, key, offset = encrypt(bytes(ns.encrypt, 'utf-8'), ns.base, ns.shuffle, ns.offset_hexagrams)
+        data, key, offset = encrypt(bytes(ns.encrypt, ENCODING), ns.base, ns.shuffle, ns.offset_hexagrams)
         if ns.shuffle:
             stderr.write("Key: %s\n" % key)
         if ns.offset_hexagrams:
             stderr.write("Hexagram Offset: %d\n" % offset)
         print(data)
     elif ns.decrypt:
-        print(decrypt(bytes(ns.decrypt, 'utf-8'), ns.base, ns.key, int(ns.offset_hexagrams)))
+        print(decrypt(bytes(ns.decrypt, ENCODING), ns.base, ns.key, int(ns.offset_hexagrams)))
