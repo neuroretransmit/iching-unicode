@@ -39,6 +39,7 @@ parser.add_argument('-hk', '--hexagram-key', help='hexagram key for decryption',
 ns = parser.parse_args()
 
 
+# TODO: Reduce keyspace to used characters and hexagrams
 def decrypt(encrypted: bytes, base: int = 64, base_key: str = None, hexagram_offset: int = 0, hexagram_key: str = None):
     """
     Decrypt encrypted byte stream using different base systems. Optionally, provide the base
@@ -70,6 +71,7 @@ def decrypt(encrypted: bytes, base: int = 64, base_key: str = None, hexagram_off
         printerr_fail("Invalid offset or key")
 
 
+# TODO: Reduce keyspace to used characters and hexagrams
 def encrypt(secret: bytes, base: int = 64, shuffle_base: bool = False, offset_hexagrams: bool = False,
             shuffle_hexagrams: bool = False):
     """
@@ -129,7 +131,7 @@ def printerr_fail(message):
     exit(1)
 
 
-def printerr_important(message):
+def printerr_important(message: str):
     """
     Print important data to stderr (with or without color support)
     :param message:
