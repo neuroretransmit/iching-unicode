@@ -1,27 +1,21 @@
 #!/usr/bin/env python3
 
-import argparse
-import base64
+from argparse import ArgumentParser, ArgumentTypeError
+from base64 import b16encode, b16decode, b32encode, b32decode, b64encode, b64decode
 import random
-import sys
+from sys import stderr
 
+# King Wen hexagram order
+HEXAGRAMS = '䷀䷁䷂䷃䷄䷅䷆䷇䷈䷉䷊䷋䷌䷍䷎䷏䷐䷑䷒䷓䷔䷕䷖䷗䷘䷙䷚䷛䷜䷝䷞䷟' \
+            '䷠䷡䷢䷣䷤䷥䷦䷧䷨䷩䷪䷫䷬䷭䷮䷯䷰䷱䷲䷳䷴䷵䷶䷷䷸䷹䷺䷻䷼䷽䷾䷿'
 
-# King Wen order
-HEXAGRAMS = '䷀䷁䷂䷃䷄䷅䷆䷇䷈䷉䷊䷋䷌䷍䷎䷏' \
-            '䷐䷑䷒䷓䷔䷕䷖䷗䷘䷙䷚䷛䷜䷝䷞䷟' \
-            '䷠䷡䷢䷣䷤䷥䷦䷧䷨䷩䷪䷫䷬䷭䷮䷯' \
-            '䷰䷱䷲䷳䷴䷵䷶䷷䷸䷹䷺䷻䷼䷽䷾䷿'
-
-DEFAULT_BASE_IDX_TABLE = {
+DEFAULT_BASE_CHARSET = {
     16: '0123456789ABCDEF',
     32: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567',
     64: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
 }
 
-# Copied in case of shifts
-BASE_IDX_TABLE = DEFAULT_BASE_IDX_TABLE.copy()
-
-parser = argparse.ArgumentParser(description='Hide messages in I Ching hexagrams')
+parser = ArgumentParser(description='Hide messages in I Ching hexagrams')
 parser.add_argument('-b', '--base', help='target base [16, 32, 64]', type=int, default=64)
 parser.add_argument('-s', '--shuffle', help='shuffle base index table', nargs='?', const=True, default=False)
 parser.add_argument('-e', '--encrypt', help='encrypt message')
@@ -30,68 +24,64 @@ parser.add_argument('-k', '--key', help='key for decryption', default=None)
 ns = parser.parse_args()
 
 
-def decrypt(data):
+def decrypt(encrypted, base, decryption_key):
     try:
         # TODO: Pick random offset to slice at
-        iching_slice = HEXAGRAMS[:ns.base]
-        mapping = dict(zip(iching_slice, ns.key if ns.key else DEFAULT_BASE_IDX_TABLE[ns.base]))
-        data = data.decode('utf-8')
-        for k, v in mapping.items():
-            data = data.replace(k, v)
-        if ns.key:
-            data = data.translate(str.maketrans(DEFAULT_BASE_IDX_TABLE[ns.base], ns.key))
-        if ns.base == 16:
-            return base64.b16decode(data).decode('utf-8')
-        elif ns.base == 32:
-            data += '=' * ((8 - (len(data) % 8)) % 8)
-            return base64.b32decode(data).decode('utf-8')
-        elif ns.base == 64:
-            data += '=' * ((4 - len(data) % 4) % 4)
-            return base64.b64decode(data).decode('utf-8')
+        hexagrams_slice = HEXAGRAMS[:base]
+        mapping = dict(zip(hexagrams_slice, decryption_key if decryption_key else DEFAULT_BASE_CHARSET[base]))
+        decrypted = encrypted.decode('utf-8')
+        for hexagram in set(decrypted):
+            decrypted = decrypted.replace(hexagram, mapping[hexagram])
+        if decryption_key:
+            decrypted = decrypted.translate(str.maketrans(DEFAULT_BASE_CHARSET[base], decryption_key))
+        if base == 16:
+            return b16decode(decrypted).decode('utf-8')
+        elif base == 32:
+            decrypted += '=' * ((8 - (len(decrypted) % 8)) % 8)
+            return b32decode(decrypted).decode('utf-8')
+        elif base == 64:
+            decrypted += '=' * ((4 - len(decrypted) % 4) % 4)
+            return b64decode(decrypted).decode('utf-8')
     except ValueError:
-        sys.stderr.write("Invalid key length or base selection")
+        stderr.write("Invalid key length or base selection")
 
 
-def encrypt(data):
+def encrypt(secret, base, shuffle):
+    encryption_key = DEFAULT_BASE_CHARSET[base]
+    if shuffle:
+        encryption_key = ''.join(random.sample(DEFAULT_BASE_CHARSET[base], base))
     # TODO: Pick random offset to slice at
-    iching_slice = HEXAGRAMS[:ns.base]
-    if ns.base == 16:
-        data = base64.b16encode(data)
-    elif ns.base == 32:
-        data = base64.b32encode(data)
-    elif ns.base == 64:
-        data = base64.b64encode(data)
-    if ns.shuffle:
-        data = bytes(data)
-        trans = data.maketrans(
-            bytes(BASE_IDX_TABLE[ns.base], 'utf-8'),
-            bytes(DEFAULT_BASE_IDX_TABLE[ns.base], 'utf-8'))
-        data = data.translate(trans)
-    mapping = dict(zip(iching_slice, BASE_IDX_TABLE[ns.base]))
-    # Decode from byte-string and remove padding
-    data = data.decode('utf-8').replace('=', '')
-    for k, v in mapping.items():
-        data = data.replace(v, k)
-    return data
+    hexagrams_slice = HEXAGRAMS[:base]
+    if base == 16:
+        encrypted = b16encode(secret).decode('utf-8')
+    elif base == 32:
+        encrypted = b32encode(secret).decode('utf-8').replace('=', '')
+    elif base == 64:
+        encrypted = b64encode(secret).decode('utf-8').replace('=', '')
+    if shuffle:
+        encrypted = encrypted.translate(str.maketrans(encryption_key, DEFAULT_BASE_CHARSET[base]))
+    mapping = dict(zip(encryption_key, hexagrams_slice))
+    for letter in set(encrypted):
+        encrypted = encrypted.replace(letter, mapping[letter])
+    return encrypted, encryption_key
 
 
 def validate_and_commit_args():
     if not ns.encrypt and not ns.decrypt:
-        parser.print_help(sys.stderr)
+        parser.print_help(stderr)
     elif ns.encrypt and ns.decrypt:
-        print("ERROR: Can't encode and decode simultaneously")
-    bases = set(BASE_IDX_TABLE.keys())
+        stderr.write("ERROR: Can't encode and decode simultaneously\n")
+    bases = DEFAULT_BASE_CHARSET.keys()
     if ns.base not in bases:
-        raise argparse.ArgumentTypeError('base must be one of %s' % bases)
-    if ns.shuffle:
-        alphabet = BASE_IDX_TABLE[ns.base]
-        BASE_IDX_TABLE[ns.base] = ''.join(random.sample(alphabet, ns.base))
-        sys.stderr.write("KEY: %s\n" % BASE_IDX_TABLE[ns.base])
+        raise ArgumentTypeError('base must be one of %s' % bases)
 
 
 if __name__ == "__main__":
     validate_and_commit_args()
     if ns.encrypt:
-        print(encrypt(bytes(ns.encrypt, 'utf-8')))
+        data, key = encrypt(bytes(ns.encrypt, 'utf-8'), ns.base, ns.shuffle)
+        if ns.shuffle:
+            stderr.write("KEY: %s\n" % key)
+        print(data)
     elif ns.decrypt:
-        print(decrypt(bytes(ns.decrypt, 'utf-8')))
+        print(decrypt(bytes(ns.decrypt, 'utf-8'), ns.base, ns.key))
