@@ -1,7 +1,7 @@
 # iching
 
-`iching` is a program to encrypt a secret using hexagrams from the [I Ching](https://en.wikipedia.org/wiki/I_Ching). 
-It has various options that act like rotors in the [Enigma machine](https://en.wikipedia.org/wiki/Enigma_machine), 
+`iching` is a program to encrypt a secret using hexagrams from the [I Ching](https://en.wikipedia.org/wiki/I_Ching).
+It has various options that act like rotors in the [Enigma machine](https://en.wikipedia.org/wiki/Enigma_machine),
 where rotors can be randomized instead of just offset.
 
 ## Usage
@@ -25,20 +25,16 @@ optional arguments:
                         offset hexagram slice for base [16, 32]
 ```
 
-## Running tests
-
-`./tests.py`
-
 ## Tips
 
 This script can safely be used with file redirection since keys and offsets are printed to stderr and the
 encrypted secret can remain in stdout.
 
-```
+```bash
 $ python iching.py -b32 -s -oh -e 'test' > test.txt
 Key: 3X6NYWVBKJSMQIRZAF7GOPHTC25D4LEU
 Hexagram Offset: 18
-$ cat test.txt 
+$ cat test.txt
 ䷱䷦䷚䷙䷩䷫䷞
 ```
 
@@ -57,7 +53,7 @@ test
 
 Using a different base numbering system:
 
-```
+```bash
 $ ./iching.py -b32 -e 'test'
 ䷎䷑䷒䷗䷆䷝䷀
 $ ./iching.py -b32 -d '䷎䷑䷒䷗䷆䷝䷀'
@@ -66,17 +62,17 @@ test
 
 Shifting the slice of hexagrams for bases lower than 64:
 
-```
+```bash
 $ ./iching.py -b32 -oh -e 'test'
 Hexagram Offset: 9
 ䷗䷚䷛䷠䷏䷦䷉
 $ ./iching.py -b32 -oh 9 -d '䷗䷚䷛䷠䷏䷦䷉'
 test
-````
+```
 
 Shuffling the base index key:
 
-```
+```bash
 $ ./iching.py -s -e 'test'
 Key: rOuy0aYGvnp9o7Q8qLH5i62XNRhCjDZklKewUS/1+4VTfIPcWgAbx3MtzEmFdsJB
 ䷏䷒䷐䷩䷏䷃
@@ -86,7 +82,7 @@ test
 
 Shuffling both the index key and offsetting hexagrams for bases lower than 64:
 
-```
+```bash
 $ ./iching.py -b32 -s -oh -e 'test'
 Key: RMWT7YSCF34EQPLX5OVH6DANZGK2JBIU
 Hexagram Offset: 28
@@ -94,3 +90,7 @@ Hexagram Offset: 28
 $ ./iching.py -b32 -k 'RMWT7YSCF34EQPLX5OVH6DANZGK2JBIU' -oh 28 -d '䷜䷲䷵䷩䷴䷨䷞'
 test
 ```
+
+## Running tests
+
+`./tests.py`
