@@ -77,7 +77,7 @@ class B16MessageEncryptionTests(unittest.TestCase, BaseTest):
         self.assertEqual(actual, expected)
 
     def test_encrypt_keyed(self):
-        actual, encryption_key, _, _ = encrypt(TEST_MESSAGE, B16, shuffle=True)
+        actual, encryption_key, _, _ = encrypt(TEST_MESSAGE, B16, shuffle_base=True)
         hexagrams_slice = HEXAGRAMS[:B16]
         expected = encode_and_translate(B16, encryption_key)
         mapping = dict(zip(encryption_key, hexagrams_slice))
@@ -94,7 +94,7 @@ class B16MessageEncryptionTests(unittest.TestCase, BaseTest):
         self.assertEqual(actual, expected)
 
     def test_encrypt_random_hexagrams(self):
-        actual, _, _, hexagram_key = encrypt(TEST_MESSAGE, B16, randomize_hexagrams=True)
+        actual, _, _, hexagram_key = encrypt(TEST_MESSAGE, B16, shuffle_hexagrams=True)
         expected = b16encode(TEST_MESSAGE).decode(ENCODING)
         mapping = dict(zip(DEFAULT_BASE_CHARSET[B16], hexagram_key))
         for letter in set(expected):
@@ -102,7 +102,7 @@ class B16MessageEncryptionTests(unittest.TestCase, BaseTest):
         self.assertEqual(actual, expected)
 
     def test_encrypt_keyed_offset(self):
-        actual, encryption_key, offset, _ = encrypt(TEST_MESSAGE, B16, shuffle=True, offset_hexagrams=True)
+        actual, encryption_key, offset, _ = encrypt(TEST_MESSAGE, B16, shuffle_base=True, offset_hexagrams=True)
         hexagrams_slice = HEXAGRAMS[offset: offset + B16]
         expected = encode_and_translate(B16, encryption_key)
         mapping = dict(zip(encryption_key, hexagrams_slice))
@@ -111,7 +111,7 @@ class B16MessageEncryptionTests(unittest.TestCase, BaseTest):
         self.assertEqual(actual, expected)
 
     def test_encrypt_offset_random_hexagrams(self):
-        actual, _, _, hexagram_key = encrypt(TEST_MESSAGE, B16, offset_hexagrams=True, randomize_hexagrams=True)
+        actual, _, _, hexagram_key = encrypt(TEST_MESSAGE, B16, offset_hexagrams=True, shuffle_hexagrams=True)
         expected = b16encode(TEST_MESSAGE).decode(ENCODING)
         mapping = dict(zip(DEFAULT_BASE_CHARSET[B16], hexagram_key))
         for letter in set(expected):
@@ -120,7 +120,8 @@ class B16MessageEncryptionTests(unittest.TestCase, BaseTest):
 
     def test_encrypt_keyed_offset_random_hexagrams(self):
         actual, encryption_key, _, hexagram_key = encrypt(TEST_MESSAGE, B16,
-                                                          shuffle=True, offset_hexagrams=True, randomize_hexagrams=True)
+                                                          shuffle_base=True, offset_hexagrams=True,
+                                                          shuffle_hexagrams=True)
         expected = encode_and_translate(B16, encryption_key)
         mapping = dict(zip(encryption_key, hexagram_key))
         for letter in set(expected):
@@ -133,7 +134,7 @@ class B16MessageEncryptionTests(unittest.TestCase, BaseTest):
         self.assertEqual(TEST_MESSAGE.decode(ENCODING), actual)
 
     def test_decrypt_keyed(self):
-        encrypted, encryption_key, _, _ = encrypt(TEST_MESSAGE, B16, shuffle=True)
+        encrypted, encryption_key, _, _ = encrypt(TEST_MESSAGE, B16, shuffle_base=True)
         decrypted = decrypt(bytes(encrypted, ENCODING), B16, encryption_key)
         self.assertEqual(TEST_MESSAGE.decode(ENCODING), decrypted)
 
@@ -143,25 +144,25 @@ class B16MessageEncryptionTests(unittest.TestCase, BaseTest):
         self.assertEqual(TEST_MESSAGE.decode(ENCODING), decrypted)
 
     def test_decrypt_keyed_offset(self):
-        encrypted, encryption_key, offset, _ = encrypt(TEST_MESSAGE, B16, shuffle=True, offset_hexagrams=True)
+        encrypted, encryption_key, offset, _ = encrypt(TEST_MESSAGE, B16, shuffle_base=True, offset_hexagrams=True)
         decrypted = decrypt(bytes(encrypted, ENCODING), B16, encryption_key, offset)
         self.assertEqual(TEST_MESSAGE.decode(ENCODING), decrypted)
 
     def test_decrypt_random_hexagrams(self):
-        encrypted, _, _, hexagram_key = encrypt(TEST_MESSAGE, B16, randomize_hexagrams=True)
+        encrypted, _, _, hexagram_key = encrypt(TEST_MESSAGE, B16, shuffle_hexagrams=True)
         actual = decrypt(bytes(encrypted, ENCODING), B16, hexagram_key=hexagram_key)
         self.assertEqual(TEST_MESSAGE.decode(ENCODING), actual)
 
     def test_decrypt_offset_random_hexagrams(self):
-        encrypted, _, _, hexagram_key = encrypt(TEST_MESSAGE, B16, offset_hexagrams=True, randomize_hexagrams=True)
+        encrypted, _, _, hexagram_key = encrypt(TEST_MESSAGE, B16, offset_hexagrams=True, shuffle_hexagrams=True)
         actual = decrypt(bytes(encrypted, ENCODING), B16, hexagram_key=hexagram_key)
         self.assertEqual(TEST_MESSAGE.decode(ENCODING), actual)
 
     def test_decrypt_keyed_offset_random_hexagrams(self):
         encrypted, encryption_key, _, hexagram_key = encrypt(TEST_MESSAGE, B16,
-                                                             shuffle=True, offset_hexagrams=True,
-                                                             randomize_hexagrams=True)
-        actual = decrypt(bytes(encrypted, ENCODING), B16, decryption_key=encryption_key, hexagram_key=hexagram_key)
+                                                             shuffle_base=True, offset_hexagrams=True,
+                                                             shuffle_hexagrams=True)
+        actual = decrypt(bytes(encrypted, ENCODING), B16, base_key=encryption_key, hexagram_key=hexagram_key)
         self.assertEqual(TEST_MESSAGE.decode(ENCODING), actual)
 
 
@@ -175,7 +176,7 @@ class B32MessageEncryptionTests(unittest.TestCase, BaseTest):
         self.assertEqual(actual, expected)
 
     def test_encrypt_keyed(self):
-        actual, encryption_key, _, _ = encrypt(TEST_MESSAGE, B32, shuffle=True)
+        actual, encryption_key, _, _ = encrypt(TEST_MESSAGE, B32, shuffle_base=True)
         hexagrams_slice = HEXAGRAMS[:B32]
         expected = encode_and_translate(B32, encryption_key)
         mapping = dict(zip(encryption_key, hexagrams_slice))
@@ -192,7 +193,7 @@ class B32MessageEncryptionTests(unittest.TestCase, BaseTest):
         self.assertEqual(actual, expected)
 
     def test_encrypt_random_hexagrams(self):
-        actual, _, _, hexagram_key = encrypt(TEST_MESSAGE, B32, randomize_hexagrams=True)
+        actual, _, _, hexagram_key = encrypt(TEST_MESSAGE, B32, shuffle_hexagrams=True)
         expected = b32encode(TEST_MESSAGE).decode(ENCODING).replace('=', '')
         mapping = dict(zip(DEFAULT_BASE_CHARSET[B32], hexagram_key))
         for letter in set(expected):
@@ -200,7 +201,7 @@ class B32MessageEncryptionTests(unittest.TestCase, BaseTest):
         self.assertEqual(actual, expected)
 
     def test_encrypt_keyed_offset(self):
-        actual, encryption_key, offset, _ = encrypt(TEST_MESSAGE, B32, shuffle=True, offset_hexagrams=True)
+        actual, encryption_key, offset, _ = encrypt(TEST_MESSAGE, B32, shuffle_base=True, offset_hexagrams=True)
         hexagrams_slice = HEXAGRAMS[offset: offset + B32]
         expected = encode_and_translate(B32, encryption_key)
         mapping = dict(zip(encryption_key, hexagrams_slice))
@@ -209,7 +210,7 @@ class B32MessageEncryptionTests(unittest.TestCase, BaseTest):
         self.assertEqual(actual, expected)
 
     def test_encrypt_offset_random_hexagrams(self):
-        actual, _, _, hexagram_key = encrypt(TEST_MESSAGE, B32, offset_hexagrams=True, randomize_hexagrams=True)
+        actual, _, _, hexagram_key = encrypt(TEST_MESSAGE, B32, offset_hexagrams=True, shuffle_hexagrams=True)
         expected = b32encode(TEST_MESSAGE).decode(ENCODING).replace('=', '')
         mapping = dict(zip(DEFAULT_BASE_CHARSET[B32], hexagram_key))
         for letter in set(expected):
@@ -218,7 +219,8 @@ class B32MessageEncryptionTests(unittest.TestCase, BaseTest):
 
     def test_encrypt_keyed_offset_random_hexagrams(self):
         actual, encryption_key, _, hexagram_key = encrypt(TEST_MESSAGE, B32,
-                                                          shuffle=True, offset_hexagrams=True, randomize_hexagrams=True)
+                                                          shuffle_base=True, offset_hexagrams=True,
+                                                          shuffle_hexagrams=True)
         expected = encode_and_translate(B32, encryption_key)
         mapping = dict(zip(encryption_key, hexagram_key))
         for letter in set(expected):
@@ -231,7 +233,7 @@ class B32MessageEncryptionTests(unittest.TestCase, BaseTest):
         self.assertEqual(TEST_MESSAGE.decode(ENCODING), decrypted)
 
     def test_decrypt_keyed(self):
-        encrypted, encryption_key, _, _ = encrypt(TEST_MESSAGE, B32, shuffle=True)
+        encrypted, encryption_key, _, _ = encrypt(TEST_MESSAGE, B32, shuffle_base=True)
         decrypted = decrypt(bytes(encrypted, ENCODING), B32, encryption_key)
         self.assertEqual(TEST_MESSAGE.decode(ENCODING), decrypted)
 
@@ -241,25 +243,25 @@ class B32MessageEncryptionTests(unittest.TestCase, BaseTest):
         self.assertEqual(TEST_MESSAGE.decode(ENCODING), decrypted)
 
     def test_decrypt_keyed_offset(self):
-        encrypted, encryption_key, offset, _ = encrypt(TEST_MESSAGE, B32, shuffle=True, offset_hexagrams=True)
+        encrypted, encryption_key, offset, _ = encrypt(TEST_MESSAGE, B32, shuffle_base=True, offset_hexagrams=True)
         decrypted = decrypt(bytes(encrypted, ENCODING), B32, encryption_key, offset)
         self.assertEqual(TEST_MESSAGE.decode(ENCODING), decrypted)
 
     def test_decrypt_random_hexagrams(self):
-        encrypted, _, _, hexagram_key = encrypt(TEST_MESSAGE, B32, randomize_hexagrams=True)
+        encrypted, _, _, hexagram_key = encrypt(TEST_MESSAGE, B32, shuffle_hexagrams=True)
         actual = decrypt(bytes(encrypted, ENCODING), B32, hexagram_key=hexagram_key)
         self.assertEqual(TEST_MESSAGE.decode(ENCODING), actual)
 
     def test_decrypt_offset_random_hexagrams(self):
-        encrypted, _, _, hexagram_key = encrypt(TEST_MESSAGE, B32, offset_hexagrams=True, randomize_hexagrams=True)
+        encrypted, _, _, hexagram_key = encrypt(TEST_MESSAGE, B32, offset_hexagrams=True, shuffle_hexagrams=True)
         actual = decrypt(bytes(encrypted, ENCODING), B32, hexagram_key=hexagram_key)
         self.assertEqual(TEST_MESSAGE.decode(ENCODING), actual)
 
     def test_decrypt_keyed_offset_random_hexagrams(self):
         encrypted, encryption_key, _, hexagram_key = encrypt(TEST_MESSAGE, B32,
-                                                             shuffle=True, offset_hexagrams=True,
-                                                             randomize_hexagrams=True)
-        actual = decrypt(bytes(encrypted, ENCODING), B32, decryption_key=encryption_key, hexagram_key=hexagram_key)
+                                                             shuffle_base=True, offset_hexagrams=True,
+                                                             shuffle_hexagrams=True)
+        actual = decrypt(bytes(encrypted, ENCODING), B32, base_key=encryption_key, hexagram_key=hexagram_key)
         self.assertEqual(TEST_MESSAGE.decode(ENCODING), actual)
 
 
@@ -273,7 +275,7 @@ class B64MessageEncryptionTests(unittest.TestCase, BaseTest):
         self.assertEqual(actual, expected)
 
     def test_encrypt_keyed(self):
-        actual, encryption_key, _, _ = encrypt(TEST_MESSAGE, B64, shuffle=True)
+        actual, encryption_key, _, _ = encrypt(TEST_MESSAGE, B64, shuffle_base=True)
         hexagrams_slice = HEXAGRAMS[:B64]
         expected = encode_and_translate(B64, encryption_key)
         mapping = dict(zip(encryption_key, hexagrams_slice))
@@ -286,7 +288,7 @@ class B64MessageEncryptionTests(unittest.TestCase, BaseTest):
         raise NotImplementedError
 
     def test_encrypt_random_hexagrams(self):
-        actual, _, _, hexagram_key = encrypt(TEST_MESSAGE, B64, randomize_hexagrams=True)
+        actual, _, _, hexagram_key = encrypt(TEST_MESSAGE, B64, shuffle_hexagrams=True)
         expected = b64encode(TEST_MESSAGE).decode(ENCODING).replace('=', '')
         mapping = dict(zip(DEFAULT_BASE_CHARSET[B64], hexagram_key))
         for letter in set(expected):
@@ -311,7 +313,7 @@ class B64MessageEncryptionTests(unittest.TestCase, BaseTest):
         self.assertEqual(TEST_MESSAGE.decode(ENCODING), decrypted)
 
     def test_decrypt_keyed(self):
-        encrypted, encryption_key, _, _ = encrypt(TEST_MESSAGE, B64, shuffle=True)
+        encrypted, encryption_key, _, _ = encrypt(TEST_MESSAGE, B64, shuffle_base=True)
         decrypted = decrypt(bytes(encrypted, ENCODING), B64, encryption_key)
         self.assertEqual(TEST_MESSAGE.decode(ENCODING), decrypted)
 
@@ -324,7 +326,7 @@ class B64MessageEncryptionTests(unittest.TestCase, BaseTest):
         raise NotImplementedError
 
     def test_decrypt_random_hexagrams(self):
-        encrypted, _, _, hexagram_key = encrypt(TEST_MESSAGE, B64, randomize_hexagrams=True)
+        encrypted, _, _, hexagram_key = encrypt(TEST_MESSAGE, B64, shuffle_hexagrams=True)
         actual = decrypt(bytes(encrypted, ENCODING), B64, hexagram_key=hexagram_key)
         self.assertEqual(TEST_MESSAGE.decode(ENCODING), actual)
 
