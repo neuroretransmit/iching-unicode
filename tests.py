@@ -3,7 +3,10 @@
 import unittest
 from base64 import b16encode, b32encode, b64encode
 
-from iching import encrypt, decrypt, B16, B32, B64, ENCODING, DEFAULT_BASE_CHARSET, HEXAGRAMS
+from iching import encrypt, decrypt, \
+    B16, B32, B64, ENCODING, \
+    DEFAULT_BASE_CHARSET, \
+    HEXAGRAMS, DIGRAM_TO_MONOGRAM_MAPPING, HEXAGRAM_TO_TRIGRAM_MAPPING
 
 TEST_MESSAGE = bytes('Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus tincidunt congue ipsum,\
 sit amet sodales est. Etiam vel purus nisl. In dapibus euismod sem a ultrices. Fusce cursus tincidunt dolor, vel\
@@ -337,6 +340,24 @@ class B64MessageEncryptionTests(unittest.TestCase, BaseTest):
     @unittest.skip("Can't offset hexagrams for base64")
     def test_decrypt_keyed_offset_random_hexagrams(self):
         raise NotImplementedError
+
+
+class TestMappings(unittest.TestCase):
+    """
+    Test that all mappings have unique values and that all keys have been enumerated
+    """
+
+    def test_digram_to_monogram(self):
+        self.assertEqual(4, len(set(DIGRAM_TO_MONOGRAM_MAPPING.keys())))
+        self.assertEqual(4, len(set(DIGRAM_TO_MONOGRAM_MAPPING.values())))
+
+    def test_hexagram_to_trigram(self):
+        self.assertEqual(64, len(set(HEXAGRAM_TO_TRIGRAM_MAPPING.keys())))
+        self.assertEqual(64, len(set(HEXAGRAM_TO_TRIGRAM_MAPPING.values())))
+
+    def test_hexagram_to_digram(self):
+        self.assertEqual(64, len(set(HEXAGRAM_TO_TRIGRAM_MAPPING.keys())))
+        self.assertEqual(64, len(set(HEXAGRAM_TO_TRIGRAM_MAPPING.values())))
 
 
 if __name__ == '__main__':

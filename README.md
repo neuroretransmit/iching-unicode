@@ -1,13 +1,16 @@
 # iching
 
-`iching` is a program to encrypt a secret using hexagrams from the [I Ching](https://en.wikipedia.org/wiki/I_Ching).
-It has various options that act like rotors in the [Enigma machine](https://en.wikipedia.org/wiki/Enigma_machine),
-where rotors can be randomized instead of just offset.
+`iching` is a program to encrypt/decrypt a secret using ngrams (monogram, digram,
+[trigram](https://en.wikipedia.org/wiki/Bagua),
+[hexagram](https://en.wikipedia.org/wiki/List_of_hexagrams_of_the_I_Ching)) from the
+[I Ching](https://en.wikipedia.org/wiki/I_Ching). It has various options that act like rotors in the
+[Enigma machine](https://en.wikipedia.org/wiki/Enigma_machine), where some rotors can be randomized instead of just
+offset.
 
 ## Usage
 
 ```
-usage: iching.py [-h] [-b BASE] [-sb [SHUFFLE_BASE]] [-e ENCRYPT] [-d DECRYPT] [-bk BASE_KEY] [-oh [OFFSET_HEXAGRAMS]] [-sh [SHUFFLE_HEXAGRAMS]] [-hk HEXAGRAM_KEY]
+usage: iching.py [-h] [-b BASE] [-sb [SHUFFLE_BASE]] [-e ENCRYPT] [-d DECRYPT] [-bk BASE_KEY] [-oh [OFFSET_HEXAGRAMS]] [-sh [SHUFFLE_HEXAGRAMS]] [-hk HEXAGRAM_KEY] [-g GRAMS]
 
 Hide messages in I Ching hexagrams
 
@@ -28,6 +31,8 @@ optional arguments:
                         shuffle hexagram order
   -hk HEXAGRAM_KEY, --hexagram-key HEXAGRAM_KEY
                         hexagram key for decryption
+  -g GRAMS, --grams GRAMS
+                        ngram style ['mono', 'di', 'tri', 'hex']
 ```
 
 ## Tips
@@ -53,6 +58,15 @@ $ ./iching.py -e 'test'
 ䷝䷆䷕䷳䷝䷀
 $ # Decoding
 $ ./iching.py -d '䷝䷆䷕䷳䷝䷀'
+test
+```
+
+Same as above but using different ngrams:
+
+```bash
+$ ./iching.py -g tri -e test
+☲☲☷☵☶☲☶☶☲☲☰☰
+$ ./iching.py -g tri -d ☲☲☷☵☶☲☶☶☲☲☰☰
 test
 ```
 
