@@ -24,7 +24,6 @@ class ANSIColors:
     ENDC = '\033[0m'
 
 
-# ====================================================== MAPPINGS ======================================================
 DEFAULT_BASE_CHARSET = {
     B16: '0123456789ABCDEF',
     B32: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567',
@@ -32,7 +31,6 @@ DEFAULT_BASE_CHARSET = {
 }
 
 DIGRAM_TO_MONOGRAM_MAPPING = {'⚌': '⚊⚊', '⚍': '⚋⚊', '⚎': '⚊⚋', '⚏': '⚋⚋'}
-
 HEXAGRAM_TO_TRIGRAM_MAPPING = {
     '䷀': '☰☰', '䷁': '☷☷', '䷂': '☵☳', '䷃': '☶☵', '䷄': '☵☰', '䷅': '☰☵', '䷆': '☷☵', '䷇': '☵☷',
     '䷈': '☴☰', '䷉': '☰☱', '䷊': '☷☰', '䷋': '☰☷', '䷌': '☰☲', '䷍': '☲☰', '䷎': '☷☶', '䷏': '☳☷',
@@ -44,7 +42,6 @@ HEXAGRAM_TO_TRIGRAM_MAPPING = {
     '䷸': '☴☴', '䷹': '☱☱', '䷺': '☴☵', '䷻': '☵☱', '䷼': '☴☱', '䷽': '☳☶', '䷾': '☵☲', '䷿': '☲☵'
 }
 TRIGRAM_TO_HEXAGRAM_MAPPING = {v: k for k, v in HEXAGRAM_TO_TRIGRAM_MAPPING.items()}
-
 HEXAGRAM_TO_DIGRAM_MAPPING = {
     '䷀': '⚌⚌⚌', '䷁': '⚏⚏⚏', '䷂': '⚍⚏⚍', '䷃': '⚎⚏⚎', '䷄': '⚍⚍⚌', '䷅': '⚌⚎⚎', '䷆': '⚏⚏⚎', '䷇': '⚍⚏⚏',
     '䷈': '⚌⚍⚌', '䷉': '⚌⚎⚌', '䷊': '⚏⚍⚌', '䷋': '⚌⚎⚏', '䷌': '⚌⚌⚍', '䷍': '⚎⚌⚌', '䷎': '⚏⚍⚏', '䷏': '⚏⚎⚏',
@@ -56,7 +53,6 @@ HEXAGRAM_TO_DIGRAM_MAPPING = {
     '䷸': '⚌⚍⚎', '䷹': '⚍⚎⚌', '䷺': '⚌⚏⚎', '䷻': '⚍⚏⚌', '䷼': '⚌⚏⚌', '䷽': '⚏⚌⚏', '䷾': '⚍⚍⚍', '䷿': '⚎⚎⚎'
 }
 DIGRAM_TO_HEXAGRAM_MAPPING = {v: k for k, v in HEXAGRAM_TO_DIGRAM_MAPPING.items()}
-
 HEXAGRAM_TO_MONOGRAM_MAPPING = {k: ''.join(DIGRAM_TO_MONOGRAM_MAPPING[c] for c in v)
                                 for k, v in HEXAGRAM_TO_DIGRAM_MAPPING.items()}
 MONOGRAM_TO_HEXAGRAM_MAPPING = {v: k for k, v in HEXAGRAM_TO_MONOGRAM_MAPPING.items()}
@@ -67,7 +63,6 @@ NGRAMS_ENCRYPT_MAPPING = {
     'tri': HEXAGRAM_TO_TRIGRAM_MAPPING,
     'hex': None
 }
-
 NGRAMS_DECRYPT_MAPPING = {
     'mono': MONOGRAM_TO_HEXAGRAM_MAPPING,
     'di': DIGRAM_TO_HEXAGRAM_MAPPING,
@@ -75,6 +70,7 @@ NGRAMS_DECRYPT_MAPPING = {
     'hex': None
 }
 
+# ===================================================== ARGUMENTS ======================================================
 parser = ArgumentParser(description='Hide messages in I Ching ngrams')
 parser.add_argument('-b', '--base', help='target base [16, 32, 64]', type=int, default=64)
 parser.add_argument('-sb', '--shuffle-base', help='shuffle base charset order', nargs='?', const=True, default=False)
@@ -111,6 +107,45 @@ def validate_args():
         printerr_fail(str(ate))
 
 
+# ================================================= HELPER FUNCTIONS ===================================================
+def color_supported():
+    """
+    Does the console support colored output
+    :return: True or False
+    """
+    supported_platform = platform != 'Pocket PC' and (platform != 'win32' or 'ANSICON' in environ)
+    is_a_tty = hasattr(stdout, 'isatty') and stdout.isatty()
+    return supported_platform and is_a_tty
+
+
+def printerr_fail(message):
+    """
+    Print error message to stderr (with or without color support) and exit with error code.
+    :param message:
+    """
+    if not color_supported():
+        stderr.write("ERROR: %s\n" % message)
+    else:
+        message = '%sERROR: ' + message + '\n'
+        message = message.replace(': ', ':%s ')
+        stderr.write(message % (ANSIColors.FAIL, ANSIColors.ENDC))
+    exit(1)
+
+
+def printerr_important(message: str):
+    """
+    Print important data to stderr (with or without color support)
+    :param message:
+    """
+    if not color_supported():
+        stderr.write(message + "\n")
+    else:
+        message = '%s' + message + '\n'
+        message = message.replace(': ', ':%s ')
+        stderr.write(message % (ANSIColors.HEADER, ANSIColors.ENDC))
+
+
+# ================================================== ENCRYPT/DECRYPT ===================================================
 # TODO: Reduce keyspace to used characters and hexagrams
 def decrypt(encrypted: bytes, base: int = 64, base_key: str = None, hexagram_offset: int = 0, hexagram_key: str = None):
     """
@@ -199,43 +234,6 @@ def encrypt(secret: bytes, base: int = 64, shuffle_base: bool = False, offset_he
                                       mapping[letter] if ngrams == 'hex' else
                                       NGRAMS_ENCRYPT_MAPPING[ngrams][mapping[letter]])
     return encrypted, base_key, offset, hexagrams_slice
-
-
-def color_supported():
-    """
-    Does the console support colored output
-    :return: True or False
-    """
-    supported_platform = platform != 'Pocket PC' and (platform != 'win32' or 'ANSICON' in environ)
-    is_a_tty = hasattr(stdout, 'isatty') and stdout.isatty()
-    return supported_platform and is_a_tty
-
-
-def printerr_fail(message):
-    """
-    Print error message to stderr (with or without color support) and exit with error code.
-    :param message:
-    """
-    if not color_supported():
-        stderr.write("ERROR: %s\n" % message)
-    else:
-        message = '%sERROR: ' + message + '\n'
-        message = message.replace(': ', ':%s ')
-        stderr.write(message % (ANSIColors.FAIL, ANSIColors.ENDC))
-    exit(1)
-
-
-def printerr_important(message: str):
-    """
-    Print important data to stderr (with or without color support)
-    :param message:
-    """
-    if not color_supported():
-        stderr.write(message + "\n")
-    else:
-        message = '%s' + message + '\n'
-        message = message.replace(': ', ':%s ')
-        stderr.write(message % (ANSIColors.HEADER, ANSIColors.ENDC))
 
 
 if __name__ == "__main__":
