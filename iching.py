@@ -175,6 +175,12 @@ def deduce_ngram_type_and_len(char: str):
 
 
 def translate_ngram_to_hexagrams(encrypted: bytes, ngram_type: str):
+    """
+    Translate monograms, digrams and trigrams to hexagrams for intermediate mapping before decrypt
+    :param encrypted: monograms, digrams or trigrams as bytes
+    :param ngram_type: 'mono' or 'di' or 'tri'
+    :return: hexagrams as bytes
+    """
     char_len = NGRAM_CHAR_LEN[ngram_type]
     translated = ''
     decoded = encrypted.decode(ENCODING)
