@@ -37,6 +37,19 @@ optional arguments:
 
 ## Tips
 
+### Preferred Security Settings
+
+To maximize message security, use the following command line options `./iching.py -sb -sh -e 'message here'`. This
+defaults to base64, shuffles the base index key and shuffles the intermediate hexagrams. You will have two 64 character
+keys after encrypting. You may use any of the ngrams (`-g`) with these settings, just know your message will be 2, 3 or
+6 times longer than using the default hexagrams. Doing so adds another level of obscurity.
+
+### Ngram Type Deduction on Decrypt
+
+The decrypt function deduces which ngrams you used, no need to pass the `-g` flag on decryption.
+
+### File Redirection
+
 This script can safely be used with file redirection since keys and offsets are printed to stderr and the
 encrypted secret can remain in stdout.
 
@@ -50,18 +63,18 @@ $ cat test.txt
 
 ## Examples
 
-Simply mapping the hexagrams to base64 without any randomization or offset:
+### Encrypt/decrypt hexagrams without any shuffling
 
 ```bash
-$ # Encoding
 $ ./iching.py -e 'test'
 ䷝䷆䷕䷳䷝䷀
-$ # Decoding
 $ ./iching.py -d '䷝䷆䷕䷳䷝䷀'
 test
 ```
 
-Same as above but using different ngrams (ngram type is deduced in decryption, no need for -g ngram):
+### Encrypt/decrypt to different ngrams without any shuffling
+
+**NOTE:** See tips above for omitting the `-g` flag on decryption, it is not necessary.
 
 ```bash
 $ ./iching.py -g tri -e test
@@ -78,7 +91,7 @@ test
 test
 ```
 
-Using a different base numbering system:
+### Encrypt/decrypt hexagrams in a different base without any shuffling
 
 ```bash
 $ ./iching.py -b32 -e 'test'
@@ -87,7 +100,7 @@ $ ./iching.py -b32 -d '䷎䷑䷒䷗䷆䷝䷀'
 test
 ```
 
-Shifting the slice of hexagrams for bases lower than 64:
+### Encrypt/decrypt hexagrams in base16/32 with offset hexagrams and without shuffling
 
 ```bash
 $ ./iching.py -b32 -oh -e 'test'
@@ -97,20 +110,20 @@ $ ./iching.py -b32 -oh 9 -d '䷗䷚䷛䷠䷏䷦䷉'
 test
 ```
 
-Shuffling the base index key:
+### Encrypt/decrypt hexagrams with shuffled base key
 
 ```bash
-$ ./iching.py -s -e 'test'
+$ ./iching.py -sb -e 'test'
 Base64 Key: rOuy0aYGvnp9o7Q8qLH5i62XNRhCjDZklKewUS/1+4VTfIPcWgAbx3MtzEmFdsJB
 ䷏䷒䷐䷩䷏䷃
 $ ./iching.py -bk 'rOuy0aYGvnp9o7Q8qLH5i62XNRhCjDZklKewUS/1+4VTfIPcWgAbx3MtzEmFdsJB' -d '䷏䷒䷐䷩䷏䷃'
 test
 ```
 
-Shuffling both the index key and offsetting hexagrams for bases lower than 64:
+### Encrypt/decrypt hexagrams in base16/32 with offset hexagrams and shuffled base key
 
 ```bash
-$ ./iching.py -b32 -s -oh -e 'test'
+$ ./iching.py -b32 -sb -oh -e 'test'
 Base32 Key: RMWT7YSCF34EQPLX5OVH6DANZGK2JBIU
 Hexagram Offset: 28
 ䷜䷲䷵䷩䷴䷨䷞
@@ -118,7 +131,7 @@ $ ./iching.py -b32 -bk 'RMWT7YSCF34EQPLX5OVH6DANZGK2JBIU' -oh 28 -d '䷜䷲䷵�
 test
 ```
 
-Shuffling both the index key and offsetting/shuffling hexagrams for bases lower than 64:
+### Encrypt/decrypt hexagrams in base16/32 with offset hexagrams and shuffled base/hexagram key
 
 ```bash
 $ ./iching.py -b32 -sb -oh -sh -e 'test'
@@ -131,7 +144,7 @@ $ ./iching.py -b32 -bk AYJWX26DCS3BFUNZPGL4R7MVKIE5QTHO \
 test
 ```
 
-Shuffling both the index key hexagrams for base 64:
+### Encrypt/decrypt hexagrams in base64 with shuffled base/hexagram key
 
 ```bash
 $ ./iching.py -sb -sh -e 'test'

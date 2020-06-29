@@ -191,7 +191,6 @@ def translate_ngrams_to_hexagrams(encrypted: bytes, ngram_type: str):
 
 
 # ================================================== ENCRYPT/DECRYPT ===================================================
-# TODO: Reduce keyspace to used characters and hexagrams
 def decrypt(encrypted: bytes, base: int = 64, base_key: str = None, hexagram_offset: int = 0, hexagram_key: str = None):
     """
     Decrypt encrypted byte stream using different base systems. Optionally, provide the base index key and hexagram
@@ -229,7 +228,6 @@ def decrypt(encrypted: bytes, base: int = 64, base_key: str = None, hexagram_off
         eprintc(str(ate), fail=True)
 
 
-# TODO: Reduce keyspace to used characters and hexagrams
 def encrypt(secret: bytes, base: int = 64, shuffle_base: bool = False, offset_hexagrams: bool = False,
             shuffle_hexagrams: bool = False, ngrams: str = 'hex'):
     """
