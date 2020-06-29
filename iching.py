@@ -8,14 +8,6 @@ from sys import stderr, stdout, platform
 
 # ===================================================== CONSTANTS ======================================================
 ENCODING = 'utf-8'
-MONOGRAMS = '⚊⚋'
-DIGRAMS = '⚌⚍⚎⚏'
-TRIGRAMS = '☰☱☲☳☴☵☶☷'
-HEXAGRAMS = '䷀䷁䷂䷃䷄䷅䷆䷇䷈䷉䷊䷋䷌䷍䷎䷏䷐䷑䷒䷓䷔䷕䷖䷗䷘䷙䷚䷛䷜䷝䷞䷟' \
-            '䷠䷡䷢䷣䷤䷥䷦䷧䷨䷩䷪䷫䷬䷭䷮䷯䷰䷱䷲䷳䷴䷵䷶䷷䷸䷹䷺䷻䷼䷽䷾䷿'
-B16 = 16
-B32 = 32
-B64 = 64
 
 
 class ANSIColor:
@@ -24,12 +16,20 @@ class ANSIColor:
     ENDC = '\033[0m'
 
 
+B16 = 16
+B32 = 32
+B64 = 64
 DEFAULT_BASE_CHARSET = {
     B16: '0123456789ABCDEF',
     B32: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567',
     B64: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
 }
 
+MONOGRAMS = '⚊⚋'
+DIGRAMS = '⚌⚍⚎⚏'
+TRIGRAMS = '☰☱☲☳☴☵☶☷'
+HEXAGRAMS = '䷀䷁䷂䷃䷄䷅䷆䷇䷈䷉䷊䷋䷌䷍䷎䷏䷐䷑䷒䷓䷔䷕䷖䷗䷘䷙䷚䷛䷜䷝䷞䷟' \
+            '䷠䷡䷢䷣䷤䷥䷦䷧䷨䷩䷪䷫䷬䷭䷮䷯䷰䷱䷲䷳䷴䷵䷶䷷䷸䷹䷺䷻䷼䷽䷾䷿'
 DIGRAM_TO_MONOGRAM_MAPPING = {'⚌': '⚊⚊', '⚍': '⚋⚊', '⚎': '⚊⚋', '⚏': '⚋⚋'}
 HEXAGRAM_TO_TRIGRAM_MAPPING = {
     '䷀': '☰☰', '䷁': '☷☷', '䷂': '☵☳', '䷃': '☶☵', '䷄': '☵☰', '䷅': '☰☵', '䷆': '☷☵', '䷇': '☵☷',
@@ -56,7 +56,6 @@ DIGRAM_TO_HEXAGRAM_MAPPING = {v: k for k, v in HEXAGRAM_TO_DIGRAM_MAPPING.items(
 HEXAGRAM_TO_MONOGRAM_MAPPING = {k: ''.join(DIGRAM_TO_MONOGRAM_MAPPING[c] for c in v)
                                 for k, v in HEXAGRAM_TO_DIGRAM_MAPPING.items()}
 MONOGRAM_TO_HEXAGRAM_MAPPING = {v: k for k, v in HEXAGRAM_TO_MONOGRAM_MAPPING.items()}
-
 NGRAMS_ENCRYPT_MAPPING = {
     'mono': HEXAGRAM_TO_MONOGRAM_MAPPING,
     'di': HEXAGRAM_TO_DIGRAM_MAPPING,
@@ -69,7 +68,6 @@ NGRAMS_DECRYPT_MAPPING = {
     'tri': TRIGRAM_TO_HEXAGRAM_MAPPING,
     'hex': None
 }
-
 NGRAM_CHAR_LEN = {
     'mono': 6,
     'di': 3,
@@ -170,8 +168,20 @@ def deduce_ngram_type_and_len(char: str):
         return 'di'
     elif char in MONOGRAMS:
         return 'mono'
+    elif char in HEXAGRAMS:
+        return 'hex'
     else:
         raise ArgumentTypeError("invalid message for decryption")
+
+
+def translate_ngram_to_hexagrams(encrypted: bytes, ngram_type: str):
+    char_len = NGRAM_CHAR_LEN[ngram_type]
+    translated = ''
+    decoded = encrypted.decode(ENCODING)
+    for ngram_grouping in [decoded[y - char_len: y]
+                           for y in range(char_len, len(decoded) + char_len, char_len)]:
+        translated += NGRAMS_DECRYPT_MAPPING[ngram_type][ngram_grouping]
+    return bytes(translated, ENCODING)
 
 
 # ================================================== ENCRYPT/DECRYPT ===================================================
@@ -190,14 +200,8 @@ def decrypt(encrypted: bytes, base: int = 64, base_key: str = None, hexagram_off
     """
     try:
         ngram_type = deduce_ngram_type_and_len(encrypted.decode(ENCODING)[0])
-        char_len = NGRAM_CHAR_LEN[ngram_type]
-        translated = ''
-        if ngram_type:
-            decoded = encrypted.decode(ENCODING)
-            for ngram_grouping in [decoded[y - char_len: y]
-                                   for y in range(char_len, len(decoded) + char_len, char_len)]:
-                translated += NGRAMS_DECRYPT_MAPPING[ngram_type][ngram_grouping]
-            encrypted = bytes(translated, ENCODING)
+        if ngram_type != 'hex':
+            encrypted = translate_ngram_to_hexagrams(encrypted, ngram_type)
         hexagram_key = HEXAGRAMS[hexagram_offset: hexagram_offset + base] if not hexagram_key else hexagram_key
         mapping = dict(zip(hexagram_key, base_key if base_key else DEFAULT_BASE_CHARSET[base]))
         decrypted = encrypted.decode(ENCODING)
