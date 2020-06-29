@@ -55,7 +55,7 @@ encrypted secret can remain in stdout.
 
 ```bash
 $ python iching.py -sb -sh -e 'test' > test.txt
-Base Key: zt+3dUFZig8RXjfeq0oxDySCWMvVulc2AQKYsk95mwbB17T/6h4ONpPnHaJrGILE
+Base64 Key: zt+3dUFZig8RXjfeq0oxDySCWMvVulc2AQKYsk95mwbB17T/6h4ONpPnHaJrGILE
 Hexagram Key: ䷚䷏䷾䷮䷕䷖䷼䷦䷡䷴䷙䷬䷑䷣䷷䷞䷩䷃䷛䷸䷠䷫䷯䷧䷄䷳䷈䷐䷭䷗䷻䷊䷌䷽䷰䷝䷜䷀䷟䷿䷺䷘䷲䷂䷱䷶䷤䷢䷥䷎䷪䷇䷓䷒䷉䷋䷨䷅䷍䷵䷔䷹䷆䷁
 $ cat test.txt
 ䷁䷙䷲䷌䷁䷴
