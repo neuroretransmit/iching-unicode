@@ -130,27 +130,23 @@ def eprintc(message: str, color: ANSIColor = None, fail=False, important=False):
     if not color_supported():
         if fail:
             stderr.write("ERROR: %s\n" % message)
+            exit(1)
         else:
             stderr.write(message + "\n")
     else:
-        if fail:
+        if ':' in message and not fail:
+            message = '%s' + message + '\n'
+            message = message.replace(': ', ':%s ')
+        elif ':' in message and fail:
             message = '%sERROR: ' + message + '\n'
             message = message.replace(': ', ':%s ')
             stderr.write(message % (ANSIColor.RED, ANSIColor.ENDC))
             exit(1)
+        else:
+            message = '%s' + message + '%s\n'
         if important:
-            if ':' in message:
-                message = '%s' + message + '\n'
-                message = message.replace(': ', ':%s ')
-            else:
-                message = '%s' + message + '%s\n'
             stderr.write(message % (ANSIColor.MAGENTA, ANSIColor.ENDC))
         else:
-            if ':' in message:
-                message = '%s' + message + '\n'
-                message = message.replace(': ', ':%s ')
-            else:
-                message = '%s' + message + '%s\n'
             stderr.write(message % (color, ANSIColor.ENDC))
 
 
