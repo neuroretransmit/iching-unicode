@@ -63,7 +63,7 @@ $ cat test.txt
 
 ## Examples
 
-### Encrypt/decrypt hexagrams without any shuffling
+### Encrypt/decrypt hexagrams (no shuffling)
 
 ```bash
 $ ./iching.py -e 'test'
@@ -72,7 +72,7 @@ $ ./iching.py -d '䷝䷆䷕䷳䷝䷀'
 test
 ```
 
-### Encrypt/decrypt to different ngrams without any shuffling
+### Encrypt/decrypt to different ngrams (no shuffling)
 
 **NOTE:** See tips above for omitting the `-g` flag on decryption, it is not necessary.
 
@@ -91,7 +91,7 @@ test
 test
 ```
 
-### Encrypt/decrypt hexagrams in a different base without any shuffling
+### Encrypt/decrypt hexagrams in a different base (no shuffling)
 
 ```bash
 $ ./iching.py -b32 -e 'test'
@@ -100,7 +100,7 @@ $ ./iching.py -b32 -d '䷎䷑䷒䷗䷆䷝䷀'
 test
 ```
 
-### Encrypt/decrypt hexagrams in base16/32 with offset hexagrams and without shuffling
+### Encrypt/decrypt hexagrams in base16/32 with offset hexagrams (no shuffling)
 
 ```bash
 $ ./iching.py -b32 -oh -e 'test'
