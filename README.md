@@ -61,12 +61,20 @@ $ ./iching.py -d '䷝䷆䷕䷳䷝䷀'
 test
 ```
 
-Same as above but using different ngrams:
+Same as above but using different ngrams (ngram type is deduced in decryption, no need for -g ngram):
 
 ```bash
 $ ./iching.py -g tri -e test
 ☲☲☷☵☶☲☶☶☲☲☰☰
-$ ./iching.py -g tri -d ☲☲☷☵☶☲☶☶☲☲☰☰
+$ ./iching.py -d ☲☲☷☵☶☲☶☶☲☲☰☰
+test
+$  ./iching.py -g di -e test
+⚎⚌⚍⚏⚏⚎⚎⚍⚍⚎⚍⚏⚎⚌⚍⚌⚌⚌
+$ ./iching.py -d ⚎⚌⚍⚏⚏⚎⚎⚍⚍⚎⚍⚏⚎⚌⚍⚌⚌⚌
+test
+./iching.py -g mono -e test
+⚊⚋⚊⚊⚋⚊⚋⚋⚋⚋⚊⚋⚊⚋⚋⚊⚋⚊⚊⚋⚋⚊⚋⚋⚊⚋⚊⚊⚋⚊⚊⚊⚊⚊⚊⚊
+./iching.py -d ⚊⚋⚊⚊⚋⚊⚋⚋⚋⚋⚊⚋⚊⚋⚋⚊⚋⚊⚊⚋⚋⚊⚋⚋⚊⚋⚊⚊⚋⚊⚊⚊⚊⚊⚊⚊
 test
 ```
 
@@ -93,7 +101,7 @@ Shuffling the base index key:
 
 ```bash
 $ ./iching.py -s -e 'test'
-Base Key: rOuy0aYGvnp9o7Q8qLH5i62XNRhCjDZklKewUS/1+4VTfIPcWgAbx3MtzEmFdsJB
+Base64 Key: rOuy0aYGvnp9o7Q8qLH5i62XNRhCjDZklKewUS/1+4VTfIPcWgAbx3MtzEmFdsJB
 ䷏䷒䷐䷩䷏䷃
 $ ./iching.py -bk 'rOuy0aYGvnp9o7Q8qLH5i62XNRhCjDZklKewUS/1+4VTfIPcWgAbx3MtzEmFdsJB' -d '䷏䷒䷐䷩䷏䷃'
 test
@@ -103,7 +111,7 @@ Shuffling both the index key and offsetting hexagrams for bases lower than 64:
 
 ```bash
 $ ./iching.py -b32 -s -oh -e 'test'
-Base Key: RMWT7YSCF34EQPLX5OVH6DANZGK2JBIU
+Base32 Key: RMWT7YSCF34EQPLX5OVH6DANZGK2JBIU
 Hexagram Offset: 28
 ䷜䷲䷵䷩䷴䷨䷞
 $ ./iching.py -b32 -bk 'RMWT7YSCF34EQPLX5OVH6DANZGK2JBIU' -oh 28 -d '䷜䷲䷵䷩䷴䷨䷞'
@@ -114,7 +122,7 @@ Shuffling both the index key and offsetting/shuffling hexagrams for bases lower 
 
 ```bash
 $ ./iching.py -b32 -sb -oh -sh -e 'test'
-Base Key: AYJWX26DCS3BFUNZPGL4R7MVKIE5QTHO
+Base32 Key: AYJWX26DCS3BFUNZPGL4R7MVKIE5QTHO
 Hexagram Key: ䷏䷇䷊䷕䷛䷉䷞䷗䷐䷖䷙䷅䷈䷌䷎䷍䷑䷢䷆䷝䷚䷜䷡䷘䷔䷠䷟䷒䷣䷄䷓䷋
 ䷜䷌䷊䷟䷚䷙䷏
 $ ./iching.py -b32 -bk AYJWX26DCS3BFUNZPGL4R7MVKIE5QTHO \
@@ -127,7 +135,7 @@ Shuffling both the index key hexagrams for base 64:
 
 ```bash
 $ ./iching.py -sb -sh -e 'test'
-Base Key: HSGtm3plsyX4+c6UwqO5vYaA8/2QMLhejCuNKgJRP19VozkDxEdTbFfrIZiWn70B
+Base64 Key: HSGtm3plsyX4+c6UwqO5vYaA8/2QMLhejCuNKgJRP19VozkDxEdTbFfrIZiWn70B
 Hexagram Key: ䷹䷴䷩䷡䷐䷶䷗䷭䷄䷯䷛䷼䷟䷂䷠䷳䷒䷵䷽䷁䷙䷰䷾䷆䷔䷫䷿䷺䷌䷱䷥䷻䷚䷤䷊䷘䷃䷜䷇䷪䷑䷲䷝䷍䷅䷕䷢䷷䷏䷧䷞䷨䷈䷸䷀䷖䷬䷣䷎䷮䷋䷉䷓䷦
 ䷯䷤䷖䷡䷯䷛
 $ ./iching.py -bk HSGtm3plsyX4+c6UwqO5vYaA8/2QMLhejCuNKgJRP19VozkDxEdTbFfrIZiWn70B \

@@ -156,9 +156,9 @@ def eprintc(message: str, color: ANSIColor = None, fail=False, important=False):
             stderr.write(message % (color, ANSIColor.ENDC))
 
 
-def deduce_ngram_type_and_len(char: str):
+def deduce_ngram_type(char: str):
     """
-    Deduce ngram type and length from secret
+    Deduce ngram type from character
     :param char: first character from encrypted message
     :return: one of ['tri', 'di', 'mono']
     """
@@ -174,7 +174,7 @@ def deduce_ngram_type_and_len(char: str):
         raise ArgumentTypeError("invalid message for decryption")
 
 
-def translate_ngram_to_hexagrams(encrypted: bytes, ngram_type: str):
+def translate_ngrams_to_hexagrams(encrypted: bytes, ngram_type: str):
     """
     Translate monograms, digrams and trigrams to hexagrams for intermediate mapping before decrypt
     :param encrypted: monograms, digrams or trigrams as bytes
@@ -205,9 +205,9 @@ def decrypt(encrypted: bytes, base: int = 64, base_key: str = None, hexagram_off
     :return: decrypted message
     """
     try:
-        ngram_type = deduce_ngram_type_and_len(encrypted.decode(ENCODING)[0])
+        ngram_type = deduce_ngram_type(encrypted.decode(ENCODING)[0])
         if ngram_type != 'hex':
-            encrypted = translate_ngram_to_hexagrams(encrypted, ngram_type)
+            encrypted = translate_ngrams_to_hexagrams(encrypted, ngram_type)
         hexagram_key = HEXAGRAMS[hexagram_offset: hexagram_offset + base] if not hexagram_key else hexagram_key
         mapping = dict(zip(hexagram_key, base_key if base_key else DEFAULT_BASE_CHARSET[base]))
         decrypted = encrypted.decode(ENCODING)
@@ -279,7 +279,7 @@ if __name__ == "__main__":
             shuffle_hexagrams=ns.shuffle_hexagrams,
             ngrams=ns.grams)
         if ns.shuffle_base:
-            eprintc('Base Key: %s' % base_key, important=True)
+            eprintc('Base%d Key: %s' % (ns.base, base_key), important=True)
         if ns.offset_hexagrams and not ns.shuffle_hexagrams:
             eprintc('Hexagram Offset: %s' % hexagram_offset, important=True)
         if ns.shuffle_hexagrams:
