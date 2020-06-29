@@ -70,6 +70,13 @@ NGRAMS_DECRYPT_MAPPING = {
     'hex': None
 }
 
+NGRAM_CHAR_LEN = {
+    'mono': 6,
+    'di': 3,
+    'tri': 2,
+    'hex': 1
+}
+
 # ===================================================== ARGUMENTS ======================================================
 parser = ArgumentParser(description='Hide messages in I Ching ngrams')
 parser.add_argument('-b', '--base', help='target base [16, 32, 64]', type=int, default=64)
@@ -94,10 +101,10 @@ def validate_args():
         if not ns.encrypt and not ns.decrypt:
             parser.print_help(stderr)
         elif ns.encrypt and ns.decrypt:
-            raise ArgumentTypeError("Can't encode and decode simultaneously")
+            raise ArgumentTypeError("can't encrypt and decrypt simultaneously")
         bases = DEFAULT_BASE_CHARSET.keys()
         if ns.base not in bases:
-            raise ArgumentTypeError('Base must be one of %s' % set(bases))
+            raise ArgumentTypeError('base must be one of %s' % set(bases))
         if ns.offset_hexagrams and ns.base == B64:
             raise ArgumentTypeError('Base64 can\'t be offset')
         ngrams = NGRAMS_ENCRYPT_MAPPING.keys()
@@ -120,28 +127,29 @@ def color_supported():
 
 def eprintc(message: str, color: ANSIColor = None, fail=False, important=False):
     """
-    Print message to stderr (with or without color support) and optionally exit with error code. Text before colon is
+    Print message to stderr (with or without color support) and optionally exit with error code. Header (example
+    'Header: message' is colored if colon is present, otherwise the entire line.
     colored, otherwise the entire line.
     :param message: message to print
-    :param color:
-    :param fail:
-    :param important: highlight text up to colon
+    :param color: ANSI color to highlight message with
+    :param fail: highlight text in red
+    :param important: highlight text in magenta
     """
     if not color_supported():
         if fail:
             stderr.write("ERROR: %s\n" % message)
-            exit(1)
+            exit(-1)
         else:
             stderr.write(message + "\n")
     else:
         if ':' in message and not fail:
             message = '%s' + message + '\n'
             message = message.replace(': ', ':%s ')
-        elif ':' in message and fail:
+        elif fail:
             message = '%sERROR: ' + message + '\n'
             message = message.replace(': ', ':%s ')
             stderr.write(message % (ANSIColor.RED, ANSIColor.ENDC))
-            exit(1)
+            exit(-1)
         else:
             message = '%s' + message + '%s\n'
         if important:
@@ -151,12 +159,19 @@ def eprintc(message: str, color: ANSIColor = None, fail=False, important=False):
 
 
 def deduce_ngram_type_and_len(char: str):
+    """
+    Deduce ngram type and length from secret
+    :param char: first character from encrypted message
+    :return: one of ['tri', 'di', 'mono']
+    """
     if char in TRIGRAMS:
-        return 2, 'tri'
+        return 'tri'
     elif char in DIGRAMS:
-        return 3, 'di'
+        return 'di'
     elif char in MONOGRAMS:
-        return 6, 'mono'
+        return 'mono'
+    else:
+        raise ArgumentTypeError("invalid message for decryption")
 
 
 # ================================================== ENCRYPT/DECRYPT ===================================================
@@ -174,11 +189,12 @@ def decrypt(encrypted: bytes, base: int = 64, base_key: str = None, hexagram_off
     :return: decrypted message
     """
     try:
-        char_len, ngram_type = deduce_ngram_type_and_len(encrypted.decode(ENCODING)[0])
+        ngram_type = deduce_ngram_type_and_len(encrypted.decode(ENCODING)[0])
+        char_len = NGRAM_CHAR_LEN[ngram_type]
         translated = ''
         if ngram_type:
             decoded = encrypted.decode(ENCODING)
-            for ngram_grouping in [decoded[y - char_len:y]
+            for ngram_grouping in [decoded[y - char_len: y]
                                    for y in range(char_len, len(decoded) + char_len, char_len)]:
                 translated += NGRAMS_DECRYPT_MAPPING[ngram_type][ngram_grouping]
             encrypted = bytes(translated, ENCODING)
@@ -199,6 +215,8 @@ def decrypt(encrypted: bytes, base: int = 64, base_key: str = None, hexagram_off
             return b64decode(decrypted).decode(ENCODING)
     except KeyError:
         eprintc("Invalid offset or key", fail=True)
+    except ArgumentTypeError as ate:
+        eprintc(str(ate), fail=True)
 
 
 # TODO: Reduce keyspace to used characters and hexagrams
