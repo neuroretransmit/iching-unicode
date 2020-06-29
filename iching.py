@@ -18,9 +18,9 @@ B32 = 32
 B64 = 64
 
 
-class ANSIColors:
-    HEADER = '\033[95m'
-    FAIL = '\033[91m'
+class ANSIColor:
+    MAGENTA = '\033[95m'
+    RED = '\033[91m'
     ENDC = '\033[0m'
 
 
@@ -104,7 +104,7 @@ def validate_args():
         if ns.grams and ns.grams.lower() not in ngrams:
             raise ArgumentTypeError('ngrams must be one of %s' % set(ngrams))
     except ArgumentTypeError as ate:
-        printerr_fail(str(ate))
+        eprintc(str(ate), fail=True)
 
 
 # ================================================= HELPER FUNCTIONS ===================================================
@@ -118,31 +118,49 @@ def color_supported():
     return supported_platform and is_a_tty
 
 
-def printerr_fail(message):
+def eprintc(message: str, color: ANSIColor = None, fail=False, important=False):
     """
-    Print error message to stderr (with or without color support) and exit with error code.
-    :param message:
-    """
-    if not color_supported():
-        stderr.write("ERROR: %s\n" % message)
-    else:
-        message = '%sERROR: ' + message + '\n'
-        message = message.replace(': ', ':%s ')
-        stderr.write(message % (ANSIColors.FAIL, ANSIColors.ENDC))
-    exit(1)
-
-
-def printerr_important(message: str):
-    """
-    Print important data to stderr (with or without color support)
-    :param message:
+    Print message to stderr (with or without color support) and optionally exit with error code. Text before colon is
+    colored, otherwise the entire line.
+    :param message: message to print
+    :param color:
+    :param fail:
+    :param important: highlight text up to colon
     """
     if not color_supported():
-        stderr.write(message + "\n")
+        if fail:
+            stderr.write("ERROR: %s\n" % message)
+        else:
+            stderr.write(message + "\n")
     else:
-        message = '%s' + message + '\n'
-        message = message.replace(': ', ':%s ')
-        stderr.write(message % (ANSIColors.HEADER, ANSIColors.ENDC))
+        if fail:
+            message = '%sERROR: ' + message + '\n'
+            message = message.replace(': ', ':%s ')
+            stderr.write(message % (ANSIColor.RED, ANSIColor.ENDC))
+            exit(1)
+        if important:
+            if ':' in message:
+                message = '%s' + message + '\n'
+                message = message.replace(': ', ':%s ')
+            else:
+                message = '%s' + message + '%s\n'
+            stderr.write(message % (ANSIColor.MAGENTA, ANSIColor.ENDC))
+        else:
+            if ':' in message:
+                message = '%s' + message + '\n'
+                message = message.replace(': ', ':%s ')
+            else:
+                message = '%s' + message + '%s\n'
+            stderr.write(message % (color, ANSIColor.ENDC))
+
+
+def deduce_ngram_type_and_len(char: str):
+    if char in TRIGRAMS:
+        return 2, 'tri'
+    elif char in DIGRAMS:
+        return 3, 'di'
+    elif char in MONOGRAMS:
+        return 6, 'mono'
 
 
 # ================================================== ENCRYPT/DECRYPT ===================================================
@@ -160,17 +178,7 @@ def decrypt(encrypted: bytes, base: int = 64, base_key: str = None, hexagram_off
     :return: decrypted message
     """
     try:
-        first_char = encrypted.decode(ENCODING)[0]
-        ngram_type = None
-        if first_char in TRIGRAMS:
-            char_len = 2
-            ngram_type = 'tri'
-        elif first_char in DIGRAMS:
-            char_len = 3
-            ngram_type = 'di'
-        elif first_char in MONOGRAMS:
-            char_len = 6
-            ngram_type = 'mono'
+        char_len, ngram_type = deduce_ngram_type_and_len(encrypted.decode(ENCODING)[0])
         translated = ''
         if ngram_type:
             decoded = encrypted.decode(ENCODING)
@@ -178,8 +186,8 @@ def decrypt(encrypted: bytes, base: int = 64, base_key: str = None, hexagram_off
                                    for y in range(char_len, len(decoded) + char_len, char_len)]:
                 translated += NGRAMS_DECRYPT_MAPPING[ngram_type][ngram_grouping]
             encrypted = bytes(translated, ENCODING)
-        hexagrams_slice = HEXAGRAMS[hexagram_offset: hexagram_offset + base] if not hexagram_key else hexagram_key
-        mapping = dict(zip(hexagrams_slice, base_key if base_key else DEFAULT_BASE_CHARSET[base]))
+        hexagram_key = HEXAGRAMS[hexagram_offset: hexagram_offset + base] if not hexagram_key else hexagram_key
+        mapping = dict(zip(hexagram_key, base_key if base_key else DEFAULT_BASE_CHARSET[base]))
         decrypted = encrypted.decode(ENCODING)
         for hexagram in set(decrypted):
             decrypted = decrypted.replace(hexagram, mapping[hexagram])
@@ -194,7 +202,7 @@ def decrypt(encrypted: bytes, base: int = 64, base_key: str = None, hexagram_off
             decrypted += '=' * ((4 - len(decrypted) % 4) % 4)
             return b64decode(decrypted).decode(ENCODING)
     except KeyError:
-        printerr_fail("Invalid offset or key")
+        eprintc("Invalid offset or key", fail=True)
 
 
 # TODO: Reduce keyspace to used characters and hexagrams
@@ -214,12 +222,12 @@ def encrypt(secret: bytes, base: int = 64, shuffle_base: bool = False, offset_he
     base_key = DEFAULT_BASE_CHARSET[base]
     if shuffle_base:
         base_key = ''.join(random.sample(DEFAULT_BASE_CHARSET[base], base))
-    offset = 0
+    hexagram_offset = 0
     if offset_hexagrams:
-        offset = random.randint(0, B64 - base)
-    hexagrams_slice = HEXAGRAMS[offset: offset + base]
+        hexagram_offset = random.randint(0, B64 - base)
+    hexagram_key = HEXAGRAMS[hexagram_offset: hexagram_offset + base]
     if shuffle_hexagrams:
-        hexagrams_slice = ''.join(random.sample(hexagrams_slice, base))
+        hexagram_key = ''.join(random.sample(hexagram_key, base))
     if base == B16:
         encrypted = b16encode(secret).decode(ENCODING)
     elif base == B32:
@@ -228,12 +236,12 @@ def encrypt(secret: bytes, base: int = 64, shuffle_base: bool = False, offset_he
         encrypted = b64encode(secret).decode(ENCODING).replace('=', '')
     if shuffle_base:
         encrypted = encrypted.translate(str.maketrans(base_key, DEFAULT_BASE_CHARSET[base]))
-    mapping = dict(zip(base_key, hexagrams_slice))
+    mapping = dict(zip(base_key, hexagram_key))
     for letter in set(encrypted):
         encrypted = encrypted.replace(letter,
                                       mapping[letter] if ngrams == 'hex' else
                                       NGRAMS_ENCRYPT_MAPPING[ngrams][mapping[letter]])
-    return encrypted, base_key, offset, hexagrams_slice
+    return encrypted, base_key, hexagram_offset, hexagram_key
 
 
 if __name__ == "__main__":
@@ -247,11 +255,11 @@ if __name__ == "__main__":
             shuffle_hexagrams=ns.shuffle_hexagrams,
             ngrams=ns.grams)
         if ns.shuffle_base:
-            printerr_important('Base Key: %s' % base_key)
+            eprintc('Base Key: %s' % base_key, important=True)
         if ns.offset_hexagrams and not ns.shuffle_hexagrams:
-            printerr_important('Hexagram Offset: %s' % hexagram_offset)
+            eprintc('Hexagram Offset: %s' % hexagram_offset, important=True)
         if ns.shuffle_hexagrams:
-            printerr_important('Hexagram Key: %s' % hexagram_key)
+            eprintc('Hexagram Key: %s' % hexagram_key, important=True)
         print(data)
     elif ns.decrypt:
         print(decrypt(
