@@ -105,7 +105,7 @@ def validate_args():
         parser.print_help(stderr)
     elif ns.encrypt and ns.decrypt:
         parser.error("can't encrypt and decrypt simultaneously")
-    if ns.decrypt and ns.ngrams:
+    if ns.decrypt and ns.ngrams != 'hex':
         eprintc('-g can be omitted during decryption', warn=True)
     bases = BASE_DEFAULT_CHARSETS.keys()
     if ns.base not in bases:
