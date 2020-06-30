@@ -128,13 +128,14 @@ def color_supported():
     return supported_platform and is_a_tty
 
 
-def eprintc(message: str, color: ANSIColor = None, fail=False, important=False, warn=False):
+def eprintc(message: str, color: ANSIColor = None, warn=False, fail=False, important=False):
     """
     Print message to stderr (with or without color support) and optionally exit with error code. Header (example
     'Header: message' is colored if colon is present, otherwise the entire line.
     colored, otherwise the entire line.
     :param message: message to print
     :param color: ANSI color to highlight message with
+    :param warn: highlight text in yellow
     :param fail: highlight text in red
     :param important: highlight text in magenta
     """
