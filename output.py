@@ -31,7 +31,7 @@ def eprintc(message: str, color: ANSIColor = None, warn=False, fail=False, impor
             stderr.write("ERROR: %s%s" % (message, end_char))
             exit(-1)
         elif warn:
-            stderr.write("WARN: %s%s" % message, end_char)
+            stderr.write("WARN: %s%s" % (message, end_char))
         else:
             stderr.write(message + end_char)
     else:
