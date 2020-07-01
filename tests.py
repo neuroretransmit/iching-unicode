@@ -3,10 +3,10 @@
 import unittest
 from base64 import b16encode, b32encode, b64encode
 
-from iching import encrypt, decrypt, \
-    B16, B32, B64, ENCODING, \
+from const import B16, B32, B64, ENCODING, \
     BASE_DEFAULT_CHARSETS, \
     HEXAGRAMS, DIGRAM_TO_MONOGRAM_MAPPING, HEXAGRAM_TO_TRIGRAM_MAPPING, NGRAMS_ENCRYPT_MAPPING
+from iching import encrypt, decrypt
 
 TEST_MESSAGE = bytes('Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus tincidunt congue ipsum,\
 sit amet sodales est. Etiam vel purus nisl. In dapibus euismod sem a ultrices. Fusce cursus tincidunt dolor, vel\

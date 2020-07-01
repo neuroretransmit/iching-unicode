@@ -3,78 +3,10 @@
 import random
 from argparse import ArgumentParser
 from base64 import b16encode, b16decode, b32encode, b32decode, b64encode, b64decode
-from os import environ
-from sys import stderr, stdout, platform
+from sys import stderr
 
-# ===================================================== CONSTANTS ======================================================
-ENCODING = 'utf-8'
-
-
-class ANSIColor:
-    MAGENTA = '\033[95m'
-    RED = '\033[91m'
-    YELLOW = '\033[33m'
-    ENDC = '\033[0m'
-
-
-B16 = 16
-B32 = 32
-B64 = 64
-BASE_DEFAULT_CHARSETS = {
-    B16: '0123456789ABCDEF',
-    B32: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567',
-    B64: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
-}
-
-MONOGRAMS = '⚊⚋'
-DIGRAMS = '⚌⚍⚎⚏'
-TRIGRAMS = '☰☱☲☳☴☵☶☷'
-HEXAGRAMS = '䷀䷁䷂䷃䷄䷅䷆䷇䷈䷉䷊䷋䷌䷍䷎䷏䷐䷑䷒䷓䷔䷕䷖䷗䷘䷙䷚䷛䷜䷝䷞䷟' \
-            '䷠䷡䷢䷣䷤䷥䷦䷧䷨䷩䷪䷫䷬䷭䷮䷯䷰䷱䷲䷳䷴䷵䷶䷷䷸䷹䷺䷻䷼䷽䷾䷿'
-DIGRAM_TO_MONOGRAM_MAPPING = {'⚌': '⚊⚊', '⚍': '⚋⚊', '⚎': '⚊⚋', '⚏': '⚋⚋'}
-HEXAGRAM_TO_TRIGRAM_MAPPING = {
-    '䷀': '☰☰', '䷁': '☷☷', '䷂': '☵☳', '䷃': '☶☵', '䷄': '☵☰', '䷅': '☰☵', '䷆': '☷☵', '䷇': '☵☷',
-    '䷈': '☴☰', '䷉': '☰☱', '䷊': '☷☰', '䷋': '☰☷', '䷌': '☰☲', '䷍': '☲☰', '䷎': '☷☶', '䷏': '☳☷',
-    '䷐': '☱☳', '䷑': '☶☴', '䷒': '☷☱', '䷓': '☴☷', '䷔': '☲☳', '䷕': '☶☲', '䷖': '☶☷', '䷗': '☷☳',
-    '䷘': '☰☳', '䷙': '☶☰', '䷚': '☶☳', '䷛': '☱☴', '䷜': '☵☵', '䷝': '☲☲', '䷞': '☱☶', '䷟': '☳☴',
-    '䷠': '☰☶', '䷡': '☳☰', '䷢': '☲☷', '䷣': '☷☲', '䷤': '☴☲', '䷥': '☲☱', '䷦': '☵☶', '䷧': '☳☵',
-    '䷨': '☶☱', '䷩': '☴☳', '䷪': '☱☰', '䷫': '☰☴', '䷬': '☱☷', '䷭': '☷☴', '䷮': '☱☵', '䷯': '☵☴',
-    '䷰': '☱☲', '䷱': '☲☴', '䷲': '☳☳', '䷳': '☶☶', '䷴': '☴☶', '䷵': '☳☱', '䷶': '☳☲', '䷷': '☲☶',
-    '䷸': '☴☴', '䷹': '☱☱', '䷺': '☴☵', '䷻': '☵☱', '䷼': '☴☱', '䷽': '☳☶', '䷾': '☵☲', '䷿': '☲☵'
-}
-TRIGRAM_TO_HEXAGRAM_MAPPING = {v: k for k, v in HEXAGRAM_TO_TRIGRAM_MAPPING.items()}
-HEXAGRAM_TO_DIGRAM_MAPPING = {
-    '䷀': '⚌⚌⚌', '䷁': '⚏⚏⚏', '䷂': '⚍⚏⚍', '䷃': '⚎⚏⚎', '䷄': '⚍⚍⚌', '䷅': '⚌⚎⚎', '䷆': '⚏⚏⚎', '䷇': '⚍⚏⚏',
-    '䷈': '⚌⚍⚌', '䷉': '⚌⚎⚌', '䷊': '⚏⚍⚌', '䷋': '⚌⚎⚏', '䷌': '⚌⚌⚍', '䷍': '⚎⚌⚌', '䷎': '⚏⚍⚏', '䷏': '⚏⚎⚏',
-    '䷐': '⚍⚎⚍', '䷑': '⚎⚍⚎', '䷒': '⚏⚏⚌', '䷓': '⚌⚏⚏', '䷔': '⚎⚎⚍', '䷕': '⚎⚍⚍', '䷖': '⚎⚏⚏', '䷗': '⚏⚏⚍',
-    '䷘': '⚌⚎⚍', '䷙': '⚎⚍⚌', '䷚': '⚎⚏⚍', '䷛': '⚍⚌⚎', '䷜': '⚍⚏⚎', '䷝': '⚎⚌⚍', '䷞': '⚍⚌⚏', '䷟': '⚏⚌⚎',
-    '䷠': '⚌⚌⚏', '䷡': '⚏⚌⚌', '䷢': '⚎⚎⚏', '䷣': '⚏⚍⚍', '䷤': '⚌⚍⚍', '䷥': '⚎⚎⚌', '䷦': '⚍⚍⚏', '䷧': '⚏⚎⚎',
-    '䷨': '⚎⚏⚌', '䷩': '⚌⚏⚍', '䷪': '⚍⚌⚌', '䷫': '⚌⚌⚎', '䷬': '⚍⚎⚏', '䷭': '⚏⚍⚎', '䷮': '⚍⚎⚎', '䷯': '⚍⚍⚎',
-    '䷰': '⚍⚌⚍', '䷱': '⚎⚌⚎', '䷲': '⚏⚎⚍', '䷳': '⚎⚍⚏', '䷴': '⚌⚍⚏', '䷵': '⚏⚎⚌', '䷶': '⚏⚌⚍', '䷷': '⚎⚌⚏',
-    '䷸': '⚌⚍⚎', '䷹': '⚍⚎⚌', '䷺': '⚌⚏⚎', '䷻': '⚍⚏⚌', '䷼': '⚌⚏⚌', '䷽': '⚏⚌⚏', '䷾': '⚍⚍⚍', '䷿': '⚎⚎⚎'
-}
-DIGRAM_TO_HEXAGRAM_MAPPING = {v: k for k, v in HEXAGRAM_TO_DIGRAM_MAPPING.items()}
-HEXAGRAM_TO_MONOGRAM_MAPPING = {k: ''.join(DIGRAM_TO_MONOGRAM_MAPPING[c] for c in v)
-                                for k, v in HEXAGRAM_TO_DIGRAM_MAPPING.items()}
-MONOGRAM_TO_HEXAGRAM_MAPPING = {v: k for k, v in HEXAGRAM_TO_MONOGRAM_MAPPING.items()}
-NGRAMS_ENCRYPT_MAPPING = {
-    'mono': HEXAGRAM_TO_MONOGRAM_MAPPING,
-    'di': HEXAGRAM_TO_DIGRAM_MAPPING,
-    'tri': HEXAGRAM_TO_TRIGRAM_MAPPING,
-    'hex': None
-}
-NGRAMS_DECRYPT_MAPPING = {
-    'mono': MONOGRAM_TO_HEXAGRAM_MAPPING,
-    'di': DIGRAM_TO_HEXAGRAM_MAPPING,
-    'tri': TRIGRAM_TO_HEXAGRAM_MAPPING,
-    'hex': None
-}
-NGRAM_CHAR_LEN = {
-    'mono': 6,
-    'di': 3,
-    'tri': 2,
-    'hex': 1
-}
+from const import *
+from output import eprintc
 
 # ===================================================== ARGUMENTS ======================================================
 parser = ArgumentParser(description='Hide messages in I Ching ngrams')
@@ -118,56 +50,6 @@ def validate_args():
 
 
 # ================================================= HELPER FUNCTIONS ===================================================
-def color_supported():
-    """
-    Does the console support colored output
-    :return: True or False
-    """
-    supported_platform = platform != 'Pocket PC' and (platform != 'win32' or 'ANSICON' in environ)
-    is_a_tty = hasattr(stdout, 'isatty') and stdout.isatty()
-    return supported_platform and is_a_tty
-
-
-def eprintc(message: str, color: ANSIColor = None, warn=False, fail=False, important=False):
-    """
-    Print message to stderr (with or without color support) and optionally exit with error code. Header (example
-    'Header: message' is colored if colon is present, otherwise the entire line.
-    colored, otherwise the entire line.
-    :param message: message to print
-    :param color: ANSI color to highlight message with
-    :param warn: highlight text in yellow
-    :param fail: highlight text in red
-    :param important: highlight text in magenta
-    """
-    if not color_supported():
-        if fail:
-            stderr.write("ERROR: %s\n" % message)
-            exit(-1)
-        elif warn:
-            stderr.write("WARN: %s\n" % message)
-        else:
-            stderr.write(message + "\n")
-    else:
-        if ':' in message and not fail:
-            message = '%s' + message + '\n'
-            message = message.replace(': ', ':%s ')
-        elif fail:
-            message = '%sERROR: ' + message + '\n'
-            message = message.replace(': ', ':%s ')
-        elif warn:
-            message = '%sWARN: ' + message + '\n'
-            message = message.replace(': ', ':%s ')
-        else:
-            message = '%s' + message + '%s\n'
-        if important:
-            stderr.write(message % (ANSIColor.MAGENTA, ANSIColor.ENDC))
-        elif warn:
-            stderr.write(message % (ANSIColor.YELLOW, ANSIColor.ENDC))
-        elif fail:
-            stderr.write(message % (ANSIColor.RED, ANSIColor.ENDC))
-            exit(-1)
-        else:
-            stderr.write(message % (color, ANSIColor.ENDC))
 
 
 def deduce_ngram_type(char: str):
@@ -204,7 +86,6 @@ def translate_ngrams_to_hexagrams(encrypted: bytes, ngram_type: str):
     return bytes(translated, ENCODING)
 
 
-# ================================================== ENCRYPT/DECRYPT ===================================================
 def decrypt(encrypted: bytes, base: int = 64, base_key: str = None, hexagram_offset: int = 0, hexagram_key: str = None):
     """
     Decrypt encrypted byte stream using different base systems. Optionally, provide the base index key and hexagram
