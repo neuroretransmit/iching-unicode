@@ -13,11 +13,12 @@ from output import eprintc
 
 parser = ArgumentParser(description='Attack message encoded in I Ching ngrams')
 parser.add_argument('-m', '--message', help='encrypted message', required=True)
-# TODO: parser.add_argument('-bk', '--base-key', help='base key if known for decryption', default=None)
-# TODO: parser.add_argument('-hk', '--hexagram-key', help='hexagram key if known for decryption', default=None)
-# TODO: parser.add_argument('-oh', '--offset-hexagrams', help='offset hexagram slice if known for base {16, 32}',
+# TODO:
+# parser.add_argument('-bk', '--base-key', help='base key or partial if known for decryption', default=None)
+# parser.add_argument('-hk', '--hexagram-key', help='hexagram key or partial if known for decryption', default=None)
+# parser.add_argument('-oh', '--offset-hexagrams', help='offset hexagram slice if known for base {16, 32}',
 #                    nargs='?', const=True, default=False)
-# TODO: parser.add_argument('-te', '--target-encoding', help='character encoding to target')
+# parser.add_argument('-te', '--target-encoding', help='character encoding to target')
 ns = parser.parse_args()
 
 
