@@ -25,7 +25,7 @@ def deduce_bases(message: str) -> list:
     """
     Deduce base numbering system and return set of viable bases
     :param message: encrypted message
-    :return: list of viable bases
+    :return: set of viable bases
     """
     msg_len = len(message)
     unique_chars = set(message)
@@ -64,6 +64,8 @@ def validate_args():
     """
     Validate command line arguments
     """
+    if not ns.message:
+        parser.error('must supply message to decrypt')
     for c in ns.message:
         if c not in MONOGRAMS and c not in DIGRAMS and c not in TRIGRAMS and c not in HEXAGRAMS:
             eprintc('invalid message', fail=True)
@@ -110,7 +112,7 @@ if __name__ == '__main__':
                 except UnicodeDecodeError:
                     continue
                 except ValueError as ve:
-                    if base == B16 or base == B32:
+                    if base_offset < len(bases) - 1:
                         base_offset += 1
                     continue
             base_offset += 1
