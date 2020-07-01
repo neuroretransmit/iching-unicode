@@ -12,7 +12,7 @@ from const import B16, B32, B64, BASE_DEFAULT_CHARSETS, \
 from output import eprintc
 
 parser = ArgumentParser(description='Attack message encoded in I Ching ngrams')
-parser.add_argument('-m', '--message', help='encrypted message')
+parser.add_argument('-m', '--message', help='encrypted message', required=True)
 # TODO: parser.add_argument('-bk', '--base-key', help='base key if known for decryption', default=None)
 # TODO: parser.add_argument('-hk', '--hexagram-key', help='hexagram key if known for decryption', default=None)
 # TODO: parser.add_argument('-oh', '--offset-hexagrams', help='offset hexagram slice if known for base {16, 32}',
@@ -79,9 +79,9 @@ if __name__ == '__main__':
     average = 0
     i = 0
     for rp in ngrams_permutations:
-        j = 0
+        base_offset = 0
         for bp in bases_permutations:
-            base = bases[j]
+            base = bases[base_offset]
             for ap in bp:
                 start = time.time()
                 mapping = dict(zip(list(rp), list(ap)))
@@ -91,26 +91,27 @@ if __name__ == '__main__':
                 try:
                     stop = time.time()
                     # TODO: Adjust calculation for partial known mapping
-                    base_multiplier = reduce(lambda x, y: x * y, [b ** b for b in bases[j:]])
+                    base_multiplier = reduce(lambda b1, b2: b1 * b2, [b ** b for b in bases[base_offset:]])
                     average += (stop - start) * base_multiplier
                     i += 1
-                    day = (average / i) // (24 * 3600)
-                    eprintc('Days left: %s' % day, important=True, one_line=True)
+                    days_left = (average / i) // (24 * 3600)
+                    eprintc('Days Left: %s' % days_left, important=True, one_line=True)
+                    # TODO: Enable encoding target
                     if base == B16:
-                        b64.b16decode(permutation).decode('ascii')
+                        b64.b16decode(permutation).decode('utf-8')
                     elif base == B32:
-                        b64.b32decode(permutation).decode('ascii')
+                        b64.b32decode(permutation).decode('utf-8')
                     elif base == B64:
-                        b64.b64decode(permutation).decode('ascii')
+                        b64.b64decode(permutation).decode('utf-8')
                     with open('permutations.txt', 'a') as f:
                         f.write(permutation + '\n')
                 except binascii.Error:
                     continue
                 except UnicodeDecodeError:
                     continue
-                except ValueError:
-                    # Invalid base go to next
-                    j += 1
+                except ValueError as ve:
+                    if base == B16 or base == B32:
+                        base_offset += 1
                     continue
-            j += 1
+            base_offset += 1
 
