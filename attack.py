@@ -72,9 +72,7 @@ def validate_args():
 
 
 # O(scary)
-if __name__ == '__main__':
-    validate_args()
-    bases, ngram_alphabet = deduce_bases(ns.message), deduce_ngrams(ns.message[0])
+def attack(message: str, bases: list, ngram_alphabet: str):
     base_alphabets = set(BASE_DEFAULT_CHARSETS[b] for b in bases)
     bases_permutations = [permutations(b) for b in base_alphabets]
     ngrams_permutations = permutations(ngram_alphabet)
@@ -87,7 +85,7 @@ if __name__ == '__main__':
             for ap in bp:
                 start = time.time()
                 mapping = dict(zip(list(rp), list(ap)))
-                permutation = ns.message
+                permutation = message
                 for k, v in mapping.items():
                     permutation = permutation.replace(k, v)
                 try:
@@ -111,9 +109,13 @@ if __name__ == '__main__':
                     continue
                 except UnicodeDecodeError:
                     continue
-                except ValueError as ve:
-                    if base_offset < len(bases) - 1:
-                        base_offset += 1
+                except ValueError:
                     continue
             base_offset += 1
+
+
+if __name__ == '__main__':
+    validate_args()
+    bases, ngram_alphabet = deduce_bases(ns.message), deduce_ngrams(ns.message[0])
+    attack(ns.message, bases, ngram_alphabet)
 
