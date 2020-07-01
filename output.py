@@ -13,7 +13,7 @@ def color_supported():
     return supported_platform and is_a_tty
 
 
-def eprintc(message: str, color: ANSIColor = None, warn=False, fail=False, important=False):
+def eprintc(message: str, color: ANSIColor = None, warn=False, fail=False, important=False, one_line=False):
     """
     Print message to stderr (with or without color support) and optionally exit with error code. Header (example
     'Header: message' is colored if colon is present, otherwise the entire line.
@@ -23,27 +23,29 @@ def eprintc(message: str, color: ANSIColor = None, warn=False, fail=False, impor
     :param warn: highlight text in yellow
     :param fail: highlight text in red
     :param important: highlight text in magenta
+    :param one_line: rewrite output on same line
     """
+    end_char = '\r' if one_line else '\n'
     if not color_supported():
         if fail:
-            stderr.write("ERROR: %s\n" % message)
+            stderr.write("ERROR: %s%s" % (message, end_char))
             exit(-1)
         elif warn:
-            stderr.write("WARN: %s\n" % message)
+            stderr.write("WARN: %s%s" % message, end_char)
         else:
-            stderr.write(message + "\n")
+            stderr.write(message + end_char)
     else:
         if ':' in message and not fail:
-            message = '%s' + message + '\n'
+            message = '%s' + message + end_char
             message = message.replace(': ', ':%s ')
         elif fail:
-            message = '%sERROR: ' + message + '\n'
+            message = '%sERROR: ' + message + end_char
             message = message.replace(': ', ':%s ')
         elif warn:
-            message = '%sWARN: ' + message + '\n'
+            message = '%sWARN: ' + message + end_char
             message = message.replace(': ', ':%s ')
         else:
-            message = '%s' + message + '%s\n'
+            message = '%s' + message + '%s' + end_char
         if important:
             stderr.write(message % (ANSIColor.MAGENTA, ANSIColor.ENDC))
         elif warn:
