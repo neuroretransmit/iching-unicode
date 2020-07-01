@@ -21,11 +21,11 @@ parser.add_argument('-m', '--message', help='encrypted message', required=True)
 ns = parser.parse_args()
 
 
-def deduce_bases(message: str):
+def deduce_bases(message: str) -> list:
     """
     Deduce base numbering system and return set of viable bases
     :param message: encrypted message
-    :return: set of viable bases
+    :return: list of viable bases
     """
     msg_len = len(message)
     unique_chars = set(message)
@@ -44,7 +44,7 @@ def deduce_bases(message: str):
     return viable_bases
 
 
-def deduce_ngrams(char: str):
+def deduce_ngrams(char: str) -> str:
     """
     Deduce ngram type and return ngram alphabet
     :param char:

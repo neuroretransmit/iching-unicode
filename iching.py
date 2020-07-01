@@ -52,7 +52,7 @@ def validate_args():
 # ================================================= HELPER FUNCTIONS ===================================================
 
 
-def deduce_ngram_type(char: str):
+def deduce_ngram_type(char: str) -> str:
     """
     Deduce ngram type from character
     :param char: first character from encrypted message
@@ -70,7 +70,7 @@ def deduce_ngram_type(char: str):
         raise ValueError("invalid message for decryption")
 
 
-def translate_ngrams_to_hexagrams(encrypted: bytes, ngram_type: str):
+def translate_ngrams_to_hexagrams(encrypted: bytes, ngram_type: str) -> bytes:
     """
     Translate monograms, digrams and trigrams to hexagrams for intermediate mapping before decrypt
     :param encrypted: monograms, digrams or trigrams as bytes
@@ -86,7 +86,9 @@ def translate_ngrams_to_hexagrams(encrypted: bytes, ngram_type: str):
     return bytes(translated, ENCODING)
 
 
-def decrypt(encrypted: bytes, base: int = 64, base_key: str = None, hexagram_offset: int = 0, hexagram_key: str = None):
+# TODO: Return bytes for file encryption
+def decrypt(encrypted: bytes, base: int = 64, base_key: str = None, hexagram_offset: int = 0, hexagram_key: str = None)\
+        -> str:
     """
     Decrypt encrypted byte stream using different base systems. Optionally, provide the base index key and hexagram
     offset if encrypted with them. If a hexagram key is supplied, the offset may be omitted.
@@ -123,8 +125,9 @@ def decrypt(encrypted: bytes, base: int = 64, base_key: str = None, hexagram_off
         eprintc(str(ve), fail=True)
 
 
+# TODO: Return bytes for file encryption
 def encrypt(secret: bytes, base: int = 64, shuffle_base: bool = False, offset_hexagrams: bool = False,
-            shuffle_hexagrams: bool = False, ngrams: str = 'hex'):
+            shuffle_hexagrams: bool = False, ngrams: str = 'hex') -> str:
     """
     Encrypt bytes using different base systems and I Ching ngrams. Optionally, shuffle the base index key, hexagram
     index key or shift the hexagrams slice for base16/base32.

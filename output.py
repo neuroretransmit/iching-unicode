@@ -3,7 +3,7 @@ from sys import stderr, stdout, platform
 from const import ANSIColor
 
 
-def color_supported():
+def color_supported() -> bool:
     """
     Does the console support colored output
     :return: True or False
