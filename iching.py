@@ -5,8 +5,10 @@ from argparse import ArgumentParser
 from base64 import b16encode, b16decode, b32encode, b32decode, b64encode, b64decode
 from sys import stderr
 
-from const import *
-from output import eprintc
+from const import ENCODING, \
+    B16, B32, B64, BASE_DEFAULT_CHARSETS, \
+    NGRAMS_ENCRYPT_MAPPING, HEXAGRAMS
+from helper import eprintc, deduce_ngram_type, translate_ngrams_to_hexagrams
 
 # ===================================================== ARGUMENTS ======================================================
 parser = ArgumentParser(description='Hide messages in I Ching ngrams')
@@ -47,43 +49,6 @@ def validate_args():
     ngrams = NGRAMS_ENCRYPT_MAPPING.keys()
     if ns.ngrams and ns.ngrams.lower() not in ngrams:
         parser.error('ngrams must be one of %s' % set(ngrams))
-
-
-# ================================================= HELPER FUNCTIONS ===================================================
-
-
-def deduce_ngram_type(char: str) -> str:
-    """
-    Deduce ngram type from character
-    :param char: first character from encrypted message
-    :return: one of ['tri', 'di', 'mono']
-    """
-    if char in TRIGRAMS:
-        return 'tri'
-    elif char in DIGRAMS:
-        return 'di'
-    elif char in MONOGRAMS:
-        return 'mono'
-    elif char in HEXAGRAMS:
-        return 'hex'
-    else:
-        raise ValueError("invalid message for decryption")
-
-
-def translate_ngrams_to_hexagrams(encrypted: bytes, ngram_type: str) -> bytes:
-    """
-    Translate monograms, digrams and trigrams to hexagrams for intermediate mapping before decrypt
-    :param encrypted: monograms, digrams or trigrams as bytes
-    :param ngram_type: 'mono' or 'di' or 'tri'
-    :return: hexagrams as bytes
-    """
-    char_len = NGRAM_CHAR_LEN[ngram_type]
-    translated = ''
-    decoded = encrypted.decode(ENCODING)
-    for ngram_grouping in [decoded[y - char_len: y]
-                           for y in range(char_len, len(decoded) + char_len, char_len)]:
-        translated += NGRAMS_DECRYPT_MAPPING[ngram_type][ngram_grouping]
-    return bytes(translated, ENCODING)
 
 
 # TODO: Return bytes for file encryption
