@@ -10,7 +10,6 @@ from const import ENCODING, \
     NGRAMS_ENCRYPT_MAPPING, HEXAGRAMS
 from helper import eprintc, deduce_ngram_type, translate_ngrams_to_hexagrams
 
-# ===================================================== ARGUMENTS ======================================================
 parser = ArgumentParser(description='Hide messages in I Ching ngrams')
 # Encrypt args
 parser.add_argument('-e', '--encrypt', help='encrypt message')
