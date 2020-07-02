@@ -11,7 +11,7 @@ from functools import reduce
 from argparse import ArgumentParser
 from const import B16, B32, B64, BASE_DEFAULT_CHARSETS, \
     MONOGRAMS, DIGRAMS, TRIGRAMS, HEXAGRAMS, NGRAM_CHAR_LEN, NGRAMS_DECRYPT_MAPPING
-from output import eprintc
+from helper import eprintc
 
 parser = ArgumentParser(description='Attack message encoded in I Ching ngrams')
 parser.add_argument('-m', '--message', help='encrypted message', required=True)
