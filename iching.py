@@ -10,25 +10,6 @@ from const import ENCODING, \
     NGRAMS_ENCRYPT_MAPPING, HEXAGRAMS
 from helper import eprintc, deduce_ngram_type, translate_ngrams_to_hexagrams
 
-parser = ArgumentParser(description='Hide messages in I Ching ngrams')
-# Encrypt args
-parser.add_argument('-e', '--encrypt', help='encrypt message')
-# TODO: parser.add_argument('-ef', '--encrypt-file', help='encrypt file')
-parser.add_argument('-g', '--ngrams', help='ngram style {\'mono\', \'di\', \'tri\', \'hex\'}', default='hex')
-parser.add_argument('-sb', '--shuffle-base', help='shuffle base charset order', nargs='?', const=True, default=False)
-parser.add_argument('-sh', '--shuffle-hexagrams', help='shuffle hexagram order',
-                    nargs='?', const=True, default=False)
-# Decrypt args
-parser.add_argument('-d', '--decrypt', help='decrypt message')
-# TODO: parser.add_argument('-df', '--decrypt-file', help='decrypt file')
-parser.add_argument('-bk', '--base-key', help='base key for decryption', default=None)
-parser.add_argument('-hk', '--hexagram-key', help='hexagram key for decryption', default=None)
-# Shared args
-parser.add_argument('-b', '--base', help='target base {16, 32, 64}', type=int, default=64)
-parser.add_argument('-oh', '--offset-hexagrams', help='offset hexagram slice for base {16, 32}',
-                    nargs='?', const=True, default=False)
-ns = parser.parse_args()
-
 
 def validate_args():
     """
@@ -129,6 +110,25 @@ def encrypt(secret: bytes, base: int = 64, shuffle_base: bool = False, offset_he
 
 
 if __name__ == "__main__":
+    parser = ArgumentParser(description='Hide messages in I Ching ngrams')
+    # Encrypt args
+    parser.add_argument('-e', '--encrypt', help='encrypt message')
+    # TODO: parser.add_argument('-ef', '--encrypt-file', help='encrypt file')
+    parser.add_argument('-g', '--ngrams', help='ngram style {\'mono\', \'di\', \'tri\', \'hex\'}', default='hex')
+    parser.add_argument('-sb', '--shuffle-base', help='shuffle base charset order', nargs='?', const=True,
+                        default=False)
+    parser.add_argument('-sh', '--shuffle-hexagrams', help='shuffle hexagram order',
+                        nargs='?', const=True, default=False)
+    # Decrypt args
+    parser.add_argument('-d', '--decrypt', help='decrypt message')
+    # TODO: parser.add_argument('-df', '--decrypt-file', help='decrypt file')
+    parser.add_argument('-bk', '--base-key', help='base key for decryption', default=None)
+    parser.add_argument('-hk', '--hexagram-key', help='hexagram key for decryption', default=None)
+    # Shared args
+    parser.add_argument('-b', '--base', help='target base {16, 32, 64}', type=int, default=64)
+    parser.add_argument('-oh', '--offset-hexagrams', help='offset hexagram slice for base {16, 32}',
+                        nargs='?', const=True, default=False)
+    ns = parser.parse_args()
     validate_args()
     if ns.encrypt:
         data, base_key, hexagram_offset, hexagram_key = encrypt(
