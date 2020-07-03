@@ -38,16 +38,15 @@ Let's think about this...
 3. You have no means of checking whether the text (or raw bytes) are valid without decoding from its base numbering
 system. Your key search space is 64<sup>64</sup> in base64 (if the encrypted message is long enough to include 64 unique
 characters).
-4.
-5. Even if your encrypted message is, say, 10 characters...
+4. Even if your encrypted message is, say, 10 characters...
     * t = time to compute one permutation, lets say 0.045045440404036347 seconds
     * 10<sup>64</sup> * t = 4.50454404×10<sup>62</sup> seconds
     * Full run time: 5.2135926389×10<sup>57</sup> Days
-6. Genetic algorithms/hill-climbing will not be able to attack this, I'm 99% positive this is not feasible. Since this
+5. Genetic algorithms/hill-climbing will not be able to attack this, I'm 99% positive this is not feasible. Since this
 leaks no entropy, you can limit the range of chunk-sizes to the character encoding (if you know it), however it will
 create any characters you want in that set and give you valid decodes. If anyone has a valid fitness function for attack
 I'd love to see it and subvert it.
-7. I have included a brute-force attack in the source for you. Hope you have an army and rewrite the code to distribute
+6. I have included a brute-force attack in the source for you. Hope you have an army and rewrite the code to distribute
 it amongst nodes. Good luck.
 
 ## Usage
