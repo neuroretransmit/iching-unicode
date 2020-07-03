@@ -29,11 +29,11 @@ hexagrams and leaks no entropy.
 
 ### *Okay, but certainly there must be an efficient attack... right?*
 
-Like attacking primes? Try attacking an ungodly big number/algorithm that doesn't care about primes.
+Like attacking primes? Try attacking an ungodly big number/algorithm that doesn't care about a few special primes.
 
 Let's think about this...
 
-1. You are essentially trying to attack a massive number, but a limited number of primes don't fall out of it.
+1. You are essentially trying to attack a massive number.
 2. You must know the secret's text encoding or lack thereof.
 3. You have no means of checking whether the text (or raw bytes) are valid without decoding from its base numbering
 system. Your key search space is 64<sup>64</sup> in base64 (if the encrypted message is long enough to include 64 unique
