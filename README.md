@@ -3,9 +3,52 @@
 `iching` is a program to encrypt/decrypt a secret using ngrams (monogram, digram,
 [trigram](https://en.wikipedia.org/wiki/Bagua),
 [hexagram](https://en.wikipedia.org/wiki/List_of_hexagrams_of_the_I_Ching)) from the
-[I Ching](https://en.wikipedia.org/wiki/I_Ching). It has various options that act like rotors in the
-[Enigma machine](https://en.wikipedia.org/wiki/Enigma_machine), where some rotors can be randomized instead of just
-offset.
+[I Ching](https://en.wikipedia.org/wiki/I_Ching).
+
+## FAQ
+
+### *Why?*
+
+1. You can't backdoor this.
+2. Invulnerable to cribbing.
+3. Invulnerable to genetic algorithms/hill-climbing.
+4. Computationally inexpensive to encrypt/decrypt.
+5. No heavy math skills required to understand.
+6. Brute-force takes eons.
+
+#### *Why the I Ching?*
+
+It conveniently has 64 hexagrams, it was between that and codons. It also has the bonus feature of consisting of
+monograms, digrams, trigrams, and hexagrams, which can all be related to each other and change the ciphertext.
+
+### *Isn't this security through obscurity?*
+
+Actually, no. If this was simply a base conversion I'd agree with you, however - this is character-level encryption on
+the intermediate representation of the message in baseN via shuffling the mapping of the base64 charset to I Ching
+hexagrams and leaks no entropy.
+
+### *Okay, but certainly there must be an efficient attack... right?*
+
+Like attacking primes? Try attacking an ungodly big number/algorithm that doesn't care about primes.
+
+Let's think about this...
+
+1. You are essentially trying to attack a massive number, but a limited number of primes don't fall out of it.
+2. You must know the secret's text encoding or lack thereof.
+3. You have no means of checking whether the text (or raw bytes) are valid without decoding from its base numbering
+system. Your key search space is 64<sup>64</sup> in base64 (if the encrypted message is long enough to include 64 unique
+characters).
+4.
+5. Even if your encrypted message is, say, 10 characters...
+    * t = time to compute one permutation, lets say 0.045045440404036347 seconds
+    * 10<sup>64</sup> * t = 4.50454404×10<sup>62</sup> seconds
+    * Full run time: 5.2135926389×10<sup>57</sup> Days
+6. Genetic algorithms/hill-climbing will not be able to attack this, I'm 99% positive this is not feasible. Since this
+leaks no entropy, you can limit the range of chunk-sizes to the character encoding (if you know it), however it will
+create any characters you want in that set and give you valid decodes. If anyone has a valid fitness function for attack
+I'd love to see it and subvert it.
+7. I have included a brute-force attack in the source for you. Hope you have an army and rewrite the code to distribute
+it amongst nodes. Good luck.
 
 ## Usage
 
@@ -54,7 +97,7 @@ This script can safely be used with file redirection since keys and offsets are 
 encrypted secret can remain in stdout.
 
 ```bash
-$ python iching.py -sb -sh -e 'test' > test.txt
+$ ./iching.py -sb -sh -e 'test' > test.txt
 Base64 Key: zt+3dUFZig8RXjfeq0oxDySCWMvVulc2AQKYsk95mwbB17T/6h4ONpPnHaJrGILE
 Hexagram Key: ䷚䷏䷾䷮䷕䷖䷼䷦䷡䷴䷙䷬䷑䷣䷷䷞䷩䷃䷛䷸䷠䷫䷯䷧䷄䷳䷈䷐䷭䷗䷻䷊䷌䷽䷰䷝䷜䷀䷟䷿䷺䷘䷲䷂䷱䷶䷤䷢䷥䷎䷪䷇䷓䷒䷉䷋䷨䷅䷍䷵䷔䷹䷆䷁
 $ cat test.txt
