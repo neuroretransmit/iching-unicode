@@ -12,8 +12,8 @@ from helper import eprintc, deduce_ngram_type, translate_ngrams_to_hexagrams
 
 
 # TODO: Return bytes for file encryption
-def decrypt(encrypted: bytes, base: int = 64, base_key: str = None, hexagram_offset: int = 0, hexagram_key: str = None) \
-        -> str:
+def decrypt(encrypted: bytes, base: int = 64, base_key: str = None, hexagram_offset: int = 0,
+            hexagram_key: str = None) -> str:
     """
     Decrypt encrypted byte stream using different base systems. Optionally, provide the base index key and hexagram
     offset if encrypted with them. If a hexagram key is supplied, the offset may be omitted.
@@ -109,6 +109,7 @@ if __name__ == "__main__":
         if argparse_namespace.ngrams and argparse_namespace.ngrams.lower() not in ngrams:
             parser.error('ngrams must be one of %s' % set(ngrams))
 
+
     def setup_argparse():
         parser = ArgumentParser(description='Hide messages in I Ching ngrams')
         # Encrypt args
@@ -129,6 +130,7 @@ if __name__ == "__main__":
         parser.add_argument('-oh', '--offset-hexagrams', help='offset hexagram slice for base {16, 32}',
                             nargs='?', const=True, default=False)
         return parser, parser.parse_args()
+
 
     def main():
         parser, argparse_namespace = setup_argparse()
@@ -155,4 +157,6 @@ if __name__ == "__main__":
                 base_key=argparse_namespace.base_key,
                 hexagram_offset=int(argparse_namespace.offset_hexagrams),
                 hexagram_key=argparse_namespace.hexagram_key))
+
+
     main()

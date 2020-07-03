@@ -1,7 +1,8 @@
 from os import environ
 from sys import stderr, stdout, platform
+
 from const import ENCODING, ANSIColor, \
-    MONOGRAMS, DIGRAMS, TRIGRAMS,  HEXAGRAMS, \
+    MONOGRAMS, DIGRAMS, TRIGRAMS, HEXAGRAMS, \
     NGRAM_CHAR_LEN, NGRAMS_DECRYPT_MAPPING
 
 
