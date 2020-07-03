@@ -13,16 +13,6 @@ from const import B16, B32, B64, BASE_DEFAULT_CHARSETS, \
     MONOGRAMS, DIGRAMS, TRIGRAMS, HEXAGRAMS, NGRAM_CHAR_LEN, NGRAMS_DECRYPT_MAPPING
 from helper import eprintc
 
-parser = ArgumentParser(description='Attack message encoded in I Ching ngrams')
-parser.add_argument('-m', '--message', help='encrypted message', required=True)
-# TODO:
-parser.add_argument('-bk', '--base-key', help='base key or partial if known for decryption', default=None)
-parser.add_argument('-hk', '--hexagram-key', help='hexagram key or partial if known for decryption', default=None)
-# parser.add_argument('-oh', '--offset-hexagrams', help='offset hexagram slice if known for base {16, 32}',
-#                    nargs='?', const=True, default=False)
-# parser.add_argument('-te', '--target-encoding', help='character encoding to target')
-ns = parser.parse_args()
-
 
 def deduce_ngram_type(char: str) -> str:
     """
@@ -260,6 +250,14 @@ def attack(message: str, viable_base_charsets: list, hexagram_charset: str):
 
 
 if __name__ == '__main__':
+    parser = ArgumentParser(description='Attack message encoded in I Ching ngrams')
+    parser.add_argument('-m', '--message', help='encrypted message', required=True)
+    parser.add_argument('-bk', '--base-key', help='base key or partial if known for decryption', default=None)
+    parser.add_argument('-hk', '--hexagram-key', help='hexagram key or partial if known for decryption', default=None)
+    # TODO: parser.add_argument('-oh', '--offset-hexagrams', help='offset hexagram slice if known for base {16, 32}',
+    #                    nargs='?', const=True, default=False)
+    # TODO: parser.add_argument('-te', '--target-encoding', help='character encoding to target')
+    ns = parser.parse_args()
     viable_base_charsets = validate_args()
     message = translate_ngrams_to_hexagrams(ns.message, deduce_ngram_type(ns.message[0]), 'utf-8')
     attack(message, viable_base_charsets, HEXAGRAMS if not ns.hexagram_key else ns.hexagram_key)
