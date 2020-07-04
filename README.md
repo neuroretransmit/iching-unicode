@@ -1,6 +1,6 @@
 # iching
 
-`iching` is a program to encrypt/decrypt a secret using ngrams (monogram, digram,
+`iching` is a program to encrypt/decrypt data using ngrams (monogram, digram,
 [trigram](https://en.wikipedia.org/wiki/Bagua),
 [hexagram](https://en.wikipedia.org/wiki/List_of_hexagrams_of_the_I_Ching)) from the
 [I Ching](https://en.wikipedia.org/wiki/I_Ching).
