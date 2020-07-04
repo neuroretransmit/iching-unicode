@@ -11,9 +11,8 @@ from const import ENCODING, \
 from helper import eprintc, deduce_ngram_type, translate_ngrams_to_hexagrams
 
 
-# TODO: Return bytes for file encryption
 def decrypt(encrypted: bytes, base: int = 64, base_key: str = None, hexagram_offset: int = 0,
-            hexagram_key: str = None) -> str:
+            hexagram_key: str = None) -> bytes:
     """
     Decrypt encrypted byte stream using different base systems. Optionally, provide the base index key and hexagram
     offset if encrypted with them. If a hexagram key is supplied, the offset may be omitted.
@@ -23,7 +22,7 @@ def decrypt(encrypted: bytes, base: int = 64, base_key: str = None, hexagram_off
     :param hexagram_offset: shift to use when slicing hexagrams for base16/base32, can be omitted if hexagram key
     supplied
     :param hexagram_key: index key for hexagrams
-    :return: decrypted message
+    :return: decrypted bytes
     """
     try:
         ngram_type = deduce_ngram_type(encrypted.decode(ENCODING)[0])
@@ -31,7 +30,7 @@ def decrypt(encrypted: bytes, base: int = 64, base_key: str = None, hexagram_off
             encrypted = translate_ngrams_to_hexagrams(encrypted, ngram_type)
         hexagram_key = HEXAGRAMS[hexagram_offset: hexagram_offset + base] if not hexagram_key else hexagram_key
         mapping = dict(zip(hexagram_key, base_key if base_key else BASE_DEFAULT_CHARSETS[base]))
-        decrypted = encrypted.decode(ENCODING)
+        decrypted = encrypted.decode(ENCODING).strip()
         for hexagram in set(decrypted):
             decrypted = decrypted.replace(hexagram, mapping[hexagram])
         if base_key:
@@ -50,9 +49,8 @@ def decrypt(encrypted: bytes, base: int = 64, base_key: str = None, hexagram_off
         eprintc(str(ve), fail=True)
 
 
-# TODO: Return bytes for file encryption
 def encrypt(secret: bytes, base: int = 64, shuffle_base: bool = False, offset_hexagrams: bool = False,
-            shuffle_hexagrams: bool = False, ngrams: str = 'hex') -> str:
+            shuffle_hexagrams: bool = False, ngrams: str = 'hex') -> bytes:
     """
     Encrypt bytes using different base systems and I Ching ngrams. Optionally, shuffle the base index key, hexagram
     index key or shift the hexagrams slice for base16/base32.
@@ -94,10 +92,15 @@ if __name__ == "__main__":
         """
         Validate command line arguments
         """
-        if not argparse_namespace.encrypt and not argparse_namespace.decrypt:
+        if not argparse_namespace.encrypt and not argparse_namespace.decrypt \
+                and not argparse_namespace.encrypt_file and not argparse_namespace.decrypt_file:
             parser.print_help(stderr)
         elif argparse_namespace.encrypt and argparse_namespace.decrypt:
             parser.error("can't encrypt and decrypt simultaneously")
+        elif argparse_namespace.encrypt_file and argparse_namespace.encrypt:
+            parser.error("can't encrypt file and message simultaneously")
+        elif argparse_namespace.encrypt_file and argparse_namespace.decrypt_file:
+            parser.error("can't encrypt and decrypt file and message simultaneously")
         if argparse_namespace.decrypt and argparse_namespace.ngrams != 'hex':
             eprintc('-g can be omitted during decryption', warn=True)
         bases = BASE_DEFAULT_CHARSETS.keys()
@@ -114,7 +117,7 @@ if __name__ == "__main__":
         parser = ArgumentParser(description='Hide messages in I Ching ngrams')
         # Encrypt args
         parser.add_argument('-e', '--encrypt', help='encrypt message')
-        # TODO: parser.add_argument('-ef', '--encrypt-file', help='encrypt file')
+        parser.add_argument('-ef', '--encrypt-file', help='encrypt file')
         parser.add_argument('-g', '--ngrams', help='ngram style {\'mono\', \'di\', \'tri\', \'hex\'}', default='hex')
         parser.add_argument('-sb', '--shuffle-base', help='shuffle base charset order', nargs='?', const=True,
                             default=False)
@@ -122,7 +125,7 @@ if __name__ == "__main__":
                             nargs='?', const=True, default=False)
         # Decrypt args
         parser.add_argument('-d', '--decrypt', help='decrypt message')
-        # TODO: parser.add_argument('-df', '--decrypt-file', help='decrypt file')
+        parser.add_argument('-df', '--decrypt-file', help='decrypt file')
         parser.add_argument('-bk', '--base-key', help='base key for decryption', default=None)
         parser.add_argument('-hk', '--hexagram-key', help='hexagram key for decryption', default=None)
         # Shared args
@@ -135,9 +138,12 @@ if __name__ == "__main__":
     def main():
         parser, argparse_namespace = setup_argparse()
         validate_args(parser, argparse_namespace)
-        if argparse_namespace.encrypt:
+        if argparse_namespace.encrypt or argparse_namespace.encrypt_file:
+            if argparse_namespace.encrypt_file:
+                with open(argparse_namespace.encrypt_file, "rb") as file:
+                    data = file.read()
             data, base_key, hexagram_offset, hexagram_key = encrypt(
-                secret=bytes(argparse_namespace.encrypt, ENCODING),
+                secret=bytes(argparse_namespace.encrypt, ENCODING) if argparse_namespace.encrypt else data,
                 base=argparse_namespace.base,
                 shuffle_base=argparse_namespace.shuffle_base,
                 offset_hexagrams=argparse_namespace.offset_hexagrams,
@@ -150,9 +156,12 @@ if __name__ == "__main__":
             if argparse_namespace.shuffle_hexagrams:
                 eprintc('Hexagram Key: %s' % hexagram_key, important=True)
             print(data)
-        elif argparse_namespace.decrypt:
+        elif argparse_namespace.decrypt or argparse_namespace.decrypt_file:
+            if argparse_namespace.decrypt_file:
+                with open(argparse_namespace.decrypt_file, "rb") as file:
+                    data = file.read()
             print(decrypt(
-                encrypted=bytes(argparse_namespace.decrypt, ENCODING),
+                encrypted=bytes(argparse_namespace.decrypt, ENCODING) if argparse_namespace.decrypt else data,
                 base=argparse_namespace.base,
                 base_key=argparse_namespace.base_key,
                 hexagram_offset=int(argparse_namespace.offset_hexagrams),
