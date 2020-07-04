@@ -114,6 +114,13 @@ $ ./iching.py -d '䷝䷆䷕䷳䷝䷀'
 test
 ```
 
+### Encrypt/decrypt file as hexagrams (no shuffling)
+
+```bash
+$ ./iching.py -ef 'some-file.extension' > secret.iching
+$ ./iching.py -df 'secret.iching' > decrypted.extension
+```
+
 ### Encrypt/decrypt to different ngrams (no shuffling)
 
 **NOTE:** See tips above for omitting the `-g` flag on decryption, it is not necessary.
