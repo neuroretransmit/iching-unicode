@@ -10,41 +10,9 @@ from functools import reduce
 
 from argparse import ArgumentParser
 from const import B16, B32, B64, BASE_DEFAULT_CHARSETS, \
-    MONOGRAMS, DIGRAMS, TRIGRAMS, HEXAGRAMS, NGRAM_CHAR_LEN, NGRAMS_DECRYPT_MAPPING
-from helper import eprintc
-
-
-def deduce_ngram_type(char: str) -> str:
-    """
-    Deduce ngram type from character
-    :param char: first character from encrypted message
-    :return: one of ['tri', 'di', 'mono']
-    """
-    if char in TRIGRAMS:
-        return 'tri'
-    elif char in DIGRAMS:
-        return 'di'
-    elif char in MONOGRAMS:
-        return 'mono'
-    elif char in HEXAGRAMS:
-        return 'hex'
-    else:
-        raise ValueError("invalid message for decryption")
-
-
-def translate_ngrams_to_hexagrams(encrypted: str, ngram_type: str, encoding: str) -> bytes:
-    """
-    Translate monograms, digrams and trigrams to hexagrams for intermediate mapping before decrypt
-    :param encrypted: monograms, digrams or trigrams as bytes
-    :param ngram_type: 'mono' or 'di' or 'tri'
-    :return: hexagrams as bytes
-    """
-    char_len = NGRAM_CHAR_LEN[ngram_type]
-    translated = ''
-    for ngram_grouping in [encrypted[y - char_len: y]
-                           for y in range(char_len, len(encrypted) + char_len, char_len)]:
-        translated += NGRAMS_DECRYPT_MAPPING[ngram_type][ngram_grouping]
-    return translated
+    MONOGRAMS, DIGRAMS, TRIGRAMS, HEXAGRAMS
+from helper import eprintc, \
+    deduce_ngram_type, translate_ngrams_to_hexagrams
 
 
 def deduce_bases(message: str) -> list:
@@ -103,7 +71,7 @@ def validate_ngrams(ngrams: str):
 def validate_base_key(base_key: str):
     """
     Deduce viable base character sets
-    :param base_key:
+    :param base_key: known
     :return: set of viable character sets
     """
     viable_charsets = []
@@ -114,7 +82,8 @@ def validate_base_key(base_key: str):
         replaced = v
         for c1 in base_key:
             replaced = replaced.replace(c1, '')
-        viable_charsets.append(replaced)
+        if replaced != '':
+            viable_charsets.append(replaced)
     if len(viable_charsets) == 0:
         eprintc('invalid base key', fail=True)
     return viable_charsets
@@ -136,10 +105,6 @@ def validate_args():
         eprintc('known mappings requires both base key and hexagram key of equal length', fail=True)
     if ns.hexagram_key:
         validate_ngrams(ns.hexagram_key)
-    if ns.base_key:
-        viable_base_charsets = validate_base_key(ns.base_key)
-    return viable_base_charsets if viable_base_charsets else set(BASE_DEFAULT_CHARSETS[b]
-                                                                 for b in BASE_DEFAULT_CHARSETS.keys())
 
 
 def attempt_decode(base: int, permutation: str, encoding: str):
@@ -207,7 +172,7 @@ def permute_hexagrams(known: str):
 
 # O(scary)
 # TODO: Write keys for each permutation, add date to file
-def attack(message: str, viable_base_charsets: list, hexagram_charset: str):
+def attack(message: str, base_key: str, hexagram_charset: str):
     """
     Attack the encrypted message
     :param message: encrypted message
@@ -215,6 +180,10 @@ def attack(message: str, viable_base_charsets: list, hexagram_charset: str):
     :param hexagram_charset: character set for hexagrams
     """
     bases = deduce_bases(message)
+    if base_key:
+        viable_base_charsets = validate_base_key(base_key)
+    else:
+        viable_base_charsets = set(BASE_DEFAULT_CHARSETS[b] for b in BASE_DEFAULT_CHARSETS.keys())
     bases_permutations = permute_bases_charsets(bases, viable_base_charsets)
     hexagrams_permutations = permute_hexagrams(hexagram_charset)
     average = 0
@@ -259,6 +228,5 @@ if __name__ == '__main__':
     # TODO: parser.add_argument('-te', '--target-encoding', help='character encoding to target')
     ns = parser.parse_args()
     viable_base_charsets = validate_args()
-    message = translate_ngrams_to_hexagrams(ns.message, deduce_ngram_type(ns.message[0]), 'utf-8')
-    attack(message, viable_base_charsets, HEXAGRAMS if not ns.hexagram_key else ns.hexagram_key)
-
+    message = translate_ngrams_to_hexagrams(ns.message, deduce_ngram_type(ns.message[0]), as_bytes=False)
+    attack(message, ns.base_key if ns.base_key else None, HEXAGRAMS if not ns.hexagram_key else ns.hexagram_key)

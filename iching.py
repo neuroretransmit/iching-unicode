@@ -166,6 +166,4 @@ if __name__ == "__main__":
                 base_key=argparse_namespace.base_key,
                 hexagram_offset=int(argparse_namespace.offset_hexagrams),
                 hexagram_key=argparse_namespace.hexagram_key))
-
-
     main()
