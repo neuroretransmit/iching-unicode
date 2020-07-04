@@ -29,8 +29,6 @@ hexagrams and leaks no entropy.
 
 ### *Okay, but certainly there must be an efficient attack... right?*
 
-Like attacking primes? Try attacking an ungodly big number/algorithm that doesn't care about a few special primes.
-
 Let's think about this...
 
 1. You are essentially trying to attack a massive number.
