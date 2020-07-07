@@ -212,20 +212,20 @@ test
 
 Number (King Wen Order) | Symbol | ALT Code  | ALT X Code | Symbol Name | HTML Entity DEC | HTML Entity HEX | Unicode Code Point
 ---    |---     | ---       | ---        | ---         | ---             | ---             | ---
-   | ☰     | ALT 9776  | 2630 ALT X | Trigram for heaven, sky, 乾 qián | &#9776 | &#x2630 | U+2630
-   | ☱     | ALT 9777  | 2631 ALT X | Trigram for lake, marsh, 兌 duì | &#9777 | &#x2631 | U+2631
-   | ☲     | ALT 9778  | 2632 ALT X | Trigram for fire, 離 lí | &#9778 | &#x2632	 | U+2632
-   | ☳     | ALT 9779  | 2633 ALT X | Trigram for thunder, 震 zhèn | &#9779 | &#x2633 | U+2633
-   | ☴     | ALT 9780  | 2634 ALT X | Trigram for wind, 巽 xùn | &#9780 | &#x2634 | U+2634
-   | ☵     | ALT 9781  | 2635 ALT X | Trigram for water, 坎 kǎn | &#9781 | &#x2635 | U+2635
-   | ☶     | ALT 9782  | 2636 ALT X | Trigram for mountain, 艮 gèn | &#9782 | &#x2636 | U+2636
-   | ☷     | ALT 9783  | 2637 ALT X | Trigram for earth, 坤 kūn | &#9783 | &#x2637 | U+2637
-   | ⚊     | ALT 9866  | 268A ALT X | Monogram for yang | &#9866 | &#x268A | U+268A
-   | ⚋     | ALT 9867  | 268B ALT X | Monogram for yin | &#9867 | &#x268B | U+268B
-   | ⚌     | ALT 9868  | 268C ALT X | Digram for greater yang | &#9868 | &#x268C | U+268C
-   | ⚍     | ALT 9869  | 268D ALT X | Digram for lesser yin | &#9869 | &#x268D | U+268D
-   | ⚎     | ALT 9870  | 268E ALT X | Digram for lesser yang | &#9870 | &#x268E | U+268E
-   | ⚏     | ALT 9871  | 268F ALT X | Digram for greater yin | &#9871 | &#x268F | U+268F
+NA | ☰     | ALT 9776  | 2630 ALT X | Trigram for heaven, sky, 乾 qián | &#9776 | &#x2630 | U+2630
+NA | ☱     | ALT 9777  | 2631 ALT X | Trigram for lake, marsh, 兌 duì | &#9777 | &#x2631 | U+2631
+NA | ☲     | ALT 9778  | 2632 ALT X | Trigram for fire, 離 lí | &#9778 | &#x2632	 | U+2632
+NA | ☳     | ALT 9779  | 2633 ALT X | Trigram for thunder, 震 zhèn | &#9779 | &#x2633 | U+2633
+NA | ☴     | ALT 9780  | 2634 ALT X | Trigram for wind, 巽 xùn | &#9780 | &#x2634 | U+2634
+NA | ☵     | ALT 9781  | 2635 ALT X | Trigram for water, 坎 kǎn | &#9781 | &#x2635 | U+2635
+NA | ☶     | ALT 9782  | 2636 ALT X | Trigram for mountain, 艮 gèn | &#9782 | &#x2636 | U+2636
+NA | ☷     | ALT 9783  | 2637 ALT X | Trigram for earth, 坤 kūn | &#9783 | &#x2637 | U+2637
+NA | ⚊     | ALT 9866  | 268A ALT X | Monogram for yang | &#9866 | &#x268A | U+268A
+NA | ⚋     | ALT 9867  | 268B ALT X | Monogram for yin | &#9867 | &#x268B | U+268B
+NA | ⚌     | ALT 9868  | 268C ALT X | Digram for greater yang | &#9868 | &#x268C | U+268C
+NA | ⚍     | ALT 9869  | 268D ALT X | Digram for lesser yin | &#9869 | &#x268D | U+268D
+NA | ⚎     | ALT 9870  | 268E ALT X | Digram for lesser yang | &#9870 | &#x268E | U+268E
+NA | ⚏     | ALT 9871  | 268F ALT X | Digram for greater yin | &#9871 | &#x268F | U+268F
 01 | ䷀     | ALT 19904 | 4DC0 ALT X | Hexagram for the creative heaven, 乾 qián, force | &#19904 | &#x4DC0 | U+4DC0
 02 | ䷁     | ALT 19905 | 4DC1 ALT X | Hexagram for the receptive earth, 坤 kūn, field | &#19905 | &#x4DC1 | U+4DC1
 03 | ䷂     | ALT 19906 | 4DC2 ALT X | Hexagram for difficulty at the beginning, 屯 zhūn, sprouting | &#19906 | &#x4DC2 | U+4DC2
