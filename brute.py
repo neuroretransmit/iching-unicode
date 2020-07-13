@@ -23,39 +23,26 @@ def deduce_bases(message: str) -> list:
     """
     msg_len = len(message)
     unique_chars = set(message)
+    unique_chars_len = len(unique_chars)
     viable_bases = []
     if msg_len < B16:
         eprintc('unable to determine base, choosing all', warn=True)
         viable_bases = list(BASE_DEFAULT_CHARSETS.keys())
+    if msg_len >= B16 >= unique_chars_len:
+        viable_bases.append(B16)
+    if msg_len < B32 and unique_chars_len > B16:
+        viable_bases = [B32, B64]
+    if msg_len < B64 and unique_chars_len > B32:
+        viable_bases = [B64]
     else:
-        if msg_len >= B16 >= unique_chars:
+        if msg_len >= B16 >= unique_chars_len:
             viable_bases.append(B16)
-        if msg_len >= B32 >= unique_chars:
+        if msg_len >= B32 >= unique_chars_len:
             viable_bases.append(B32)
-        if msg_len >= B64 >= unique_chars:
+        if msg_len >= B64 >= unique_chars_len:
             viable_bases.append(B64)
     eprintc('Bases: bases %s' % viable_bases, important=True)
     return viable_bases
-
-
-def deduce_ngrams(char: str) -> str:
-    """
-    Deduce ngram type and return ngram alphabet
-    :param char:
-    :return: ngram alphabet
-    """
-    if char in MONOGRAMS:
-        eprintc('Ngrams Detected: monograms', important=True)
-        return MONOGRAMS
-    elif char in DIGRAMS:
-        eprintc('Ngrams Detected: digrams', important=True)
-        return DIGRAMS
-    elif char in TRIGRAMS:
-        eprintc('Ngrams Detected: trigrams', important=True)
-        return TRIGRAMS
-    elif char in HEXAGRAMS:
-        eprintc('Ngrams Detected: hexagrams', important=True)
-        return HEXAGRAMS
 
 
 def validate_ngrams(ngrams: str):
@@ -94,7 +81,6 @@ def validate_args():
     Validate command line arguments
     :return: viable base charsets
     """
-    viable_base_charsets = None
     if not ns.message:
         parser.error('must supply message to decrypt')
     validate_ngrams(ns.message)
@@ -117,8 +103,10 @@ def attempt_decode(base: int, permutation: str, encoding: str):
     if base == B16:
         decoded = b64.b16decode(permutation).decode(encoding)
     elif base == B32:
+        permutation += '=' * ((8 - (len(permutation) % 8)) % 8)
         decoded = b64.b32decode(permutation).decode(encoding)
     elif base == B64:
+        permutation += '=' * ((4 - (len(permutation) % 4)) % 4)
         decoded = b64.b64decode(permutation).decode(encoding)
     return decoded
 
@@ -188,6 +176,7 @@ def attack(message: str, base_key: str, hexagram_charset: str):
     hexagrams_permutations = permute_hexagrams(hexagram_charset)
     average = 0
     i = 0
+    found = False
     for hexagram_permutation in hexagrams_permutations:
         base_offset = 0
         for base_permutations in bases_permutations:
@@ -209,13 +198,19 @@ def attack(message: str, base_key: str, hexagram_charset: str):
                     # TODO: Enable encoding target
                     decoded = attempt_decode(base, permutation, 'utf-8')
                     eprintc('\nFound: ' + decoded, important=True)
+                    found = True
+                    break
                 except binascii.Error:
                     continue
                 except UnicodeDecodeError:
                     continue
                 except ValueError:
                     continue
+            if found:
+                break
             base_offset += 1
+        if found:
+            break
 
 
 if __name__ == '__main__':
