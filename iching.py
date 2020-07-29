@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import random
+import lzma
 from argparse import ArgumentParser, Namespace
 from base64 import b16encode, b16decode, b32encode, b32decode, b64encode, b64decode
 from sys import stderr
@@ -9,6 +10,28 @@ from const import ENCODING, \
     B16, B32, B64, BASE_DEFAULT_CHARSETS, \
     NGRAMS_ENCRYPT_MAPPING, HEXAGRAMS
 from helper import eprintc, deduce_ngram_type, translate_ngrams_to_hexagrams
+
+# Containerless compression (shorter messages lose larger fingerprint from container)
+COMPRESSION_FORMAT = lzma.FORMAT_RAW
+# Required filter with use of lzma.FORMAT_RAW
+COMPRESSION_FILTER = [{'id': lzma.FILTER_LZMA2}]
+
+# Functor for handling decoding and stripping padding where necessary
+ENCODER = {
+    B16: lambda x: b16encode(x).decode(ENCODING),
+    B32: lambda x: b32encode(x).decode(ENCODING).replace('=', ''),
+    B64: lambda x: b64encode(x).decode(ENCODING).replace('=', '')
+}
+
+# Functor for handling decoding and padding when necessary
+DECODER = {
+    B16: lambda x: lzma.decompress(b16decode(x),
+                                   format=COMPRESSION_FORMAT, filters=COMPRESSION_FILTER).decode(ENCODING),
+    B32: lambda x: lzma.decompress(b32decode(x + '=' * ((8 - (len(x) % 8)) % 8)),
+                                   format=COMPRESSION_FORMAT, filters=COMPRESSION_FILTER).decode(ENCODING),
+    B64: lambda x: lzma.decompress(b64decode(x + '=' * ((4 - len(x) % 4) % 4)),
+                                   format=COMPRESSION_FORMAT, filters=COMPRESSION_FILTER).decode(ENCODING)
+}
 
 
 def decrypt(encrypted: bytes, base: int = 64, base_key: str = None, hexagram_offset: int = 0,
@@ -35,14 +58,7 @@ def decrypt(encrypted: bytes, base: int = 64, base_key: str = None, hexagram_off
             decrypted = decrypted.replace(hexagram, mapping[hexagram])
         if base_key:
             decrypted = decrypted.translate(str.maketrans(BASE_DEFAULT_CHARSETS[base], base_key))
-        if base == B16:
-            return b16decode(decrypted).decode(ENCODING)
-        elif base == B32:
-            decrypted += '=' * ((8 - (len(decrypted) % 8)) % 8)
-            return b32decode(decrypted).decode(ENCODING)
-        elif base == B64:
-            decrypted += '=' * ((4 - len(decrypted) % 4) % 4)
-            return b64decode(decrypted).decode(ENCODING)
+        return DECODER[base](decrypted)
     except KeyError:
         eprintc("Invalid offset or key", fail=True)
     except ValueError as ve:
@@ -62,6 +78,7 @@ def encrypt(secret: bytes, base: int = 64, shuffle_base: bool = False, offset_he
     :param ngrams: style of ngram to be used ['mono', 'di', 'tri', 'hex']
     :return: encrypted unicode hexagrams
     """
+    secret = lzma.compress(secret, format=COMPRESSION_FORMAT, filters=COMPRESSION_FILTER)
     base_key = BASE_DEFAULT_CHARSETS[base]
     if shuffle_base:
         base_key = ''.join(random.sample(BASE_DEFAULT_CHARSETS[base], base))
@@ -71,12 +88,7 @@ def encrypt(secret: bytes, base: int = 64, shuffle_base: bool = False, offset_he
     hexagram_key = HEXAGRAMS[hexagram_offset: hexagram_offset + base]
     if shuffle_hexagrams:
         hexagram_key = ''.join(random.sample(hexagram_key, base))
-    if base == B16:
-        encrypted = b16encode(secret).decode(ENCODING)
-    elif base == B32:
-        encrypted = b32encode(secret).decode(ENCODING).replace('=', '')
-    elif base == B64:
-        encrypted = b64encode(secret).decode(ENCODING).replace('=', '')
+    encrypted = ENCODER[base](secret)
     if shuffle_base:
         encrypted = encrypted.translate(str.maketrans(base_key, BASE_DEFAULT_CHARSETS[base]))
     mapping = dict(zip(base_key, hexagram_key))

@@ -83,6 +83,7 @@ def translate_ngrams_to_hexagrams(encrypted, ngram_type: str, as_bytes: bool = T
     Translate monograms, digrams and trigrams to hexagrams for intermediate mapping before decrypt
     :param encrypted: monograms, digrams or trigrams as bytes
     :param ngram_type: 'mono' or 'di' or 'tri'
+    :param as_bytes: return translation as bytes or unicode
     :return: hexagrams as bytes
     """
     char_len = NGRAM_CHAR_LEN[ngram_type]
