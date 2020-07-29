@@ -9,12 +9,11 @@
 
 ### *Why?*
 
-1. You can't backdoor this.
-2. Invulnerable to cribbing.
-3. Invulnerable to genetic algorithms/hill-climbing.
-4. Computationally inexpensive to encrypt/decrypt.
-5. No heavy math skills required to understand.
-6. Brute-force takes eons.
+1. Invulnerable to cribbing.
+2. Invulnerable to genetic algorithms/hill-climbing.
+3. Computationally inexpensive to encrypt/decrypt.
+4. No heavy math skills required to understand.
+5. Brute-force is moot. You are attacking the intermediate representation of compressed data (without compression container).
 
 #### *Why the I Ching?*
 
@@ -24,7 +23,7 @@ monograms, digrams, trigrams, and hexagrams, which can all be related to each ot
 ### *Isn't this security through obscurity?*
 
 Actually, no. If this was simply a base conversion I'd agree with you, however - this is character-level encryption on
-the intermediate representation of the message in baseN via shuffling the mapping of the base64 charset to I Ching
+the intermediate representation of the compressed data in baseN via shuffling the mapping of the base64 charset to I Ching
 hexagrams and leaks no entropy.
 
 ### *Okay, but certainly there must be an efficient attack... right?*
@@ -33,9 +32,10 @@ Let's think about this...
 
 1. You are essentially trying to attack a massive number.
 2. You must know the secret's text encoding or lack thereof.
-3. You have no means of checking whether the text (or raw bytes) are valid without decoding from its base numbering
-system. Your key search space is 64<sup>64</sup> in base64 (if the encrypted message is long enough to include 64 unique
-characters).
+3. The data is compressed without a compression container.
+4. You have no means of checking whether the text (or raw bytes) are valid without decoding from its base numbering
+system and knowing how to decompress before decoding. Your key search space is 64<sup>64</sup> in base64 (if the
+encrypted message is long enough to include 64 unique characters).
 4. Even if your encrypted message is, say, 10 characters...
     * t = time to compute one permutation, lets say 0.045045440404036347 seconds
     * 10<sup>64</sup> * t = 4.50454404×10<sup>62</sup> seconds
@@ -44,8 +44,6 @@ characters).
 leaks no entropy, you can limit the range of chunk-sizes to the character encoding (if you know it), however it will
 create any characters you want in that set and give you valid decodes. If anyone has a valid fitness function for attack
 I'd love to see it and subvert it.
-6. I have included a brute-force attack in the source for you. Hope you have an army and rewrite the code to distribute
-it amongst nodes. Good luck.
 
 ## Usage
 
@@ -95,10 +93,10 @@ encrypted secret can remain in stdout.
 
 ```bash
 $ ./iching.py -sb -sh -e 'test' > test.txt
-Base64 Key: zt+3dUFZig8RXjfeq0oxDySCWMvVulc2AQKYsk95mwbB17T/6h4ONpPnHaJrGILE
-Hexagram Key: ䷚䷏䷾䷮䷕䷖䷼䷦䷡䷴䷙䷬䷑䷣䷷䷞䷩䷃䷛䷸䷠䷫䷯䷧䷄䷳䷈䷐䷭䷗䷻䷊䷌䷽䷰䷝䷜䷀䷟䷿䷺䷘䷲䷂䷱䷶䷤䷢䷥䷎䷪䷇䷓䷒䷉䷋䷨䷅䷍䷵䷔䷹䷆䷁
+Base64 Key: aX4GqsuR0xgtE9jB/LmAJ8Hr7OcYkPbC+MK5NW3opVQwDnzed1FZhfSTl6UivI2y
+Hexagram Key: ䷚䷈䷢䷴䷬䷏䷍䷾䷭䷡䷔䷙䷃䷶䷠䷝䷉䷟䷯䷌䷜䷨䷹䷖䷐䷀䷇䷁䷤䷋䷮䷳䷧䷣䷸䷊䷂䷞䷒䷛䷆䷻䷱䷥䷺䷅䷓䷪䷫䷕䷗䷽䷵䷿䷎䷰䷄䷦䷘䷷䷑䷩䷲䷼
 $ cat test.txt
-䷁䷙䷲䷌䷁䷴
+䷰䷬䷰䷏䷥䷺䷆䷍䷥䷰䷰
 ```
 
 ## Examples
@@ -107,8 +105,8 @@ $ cat test.txt
 
 ```bash
 $ ./iching.py -e 'test'
-䷝䷆䷕䷳䷝䷀
-$ ./iching.py -d '䷝䷆䷕䷳䷝䷀'
+䷀䷐䷀䷃䷝䷆䷕䷳䷝䷀䷀
+$ ./iching.py -d '䷀䷐䷀䷃䷝䷆䷕䷳䷝䷀䷀'
 test
 ```
 
@@ -124,17 +122,17 @@ $ ./iching.py -df 'secret.iching' > decrypted.extension
 **NOTE:** See tips above for omitting the `-g` flag on decryption, it is not necessary.
 
 ```bash
-$ ./iching.py -g tri -e test
-☲☲☷☵☶☲☶☶☲☲☰☰
-$ ./iching.py -d ☲☲☷☵☶☲☶☶☲☲☰☰
+$ ./iching.py -g tri -e 'test'
+☰☰☱☳☰☰☶☵☲☲☷☵☶☲☶☶☲☲☰☰☰☰
+$ ./iching.py -d '☰☰☱☳☰☰☶☵☲☲☷☵☶☲☶☶☲☲☰☰☰☰'
 test
-$  ./iching.py -g di -e test
-⚎⚌⚍⚏⚏⚎⚎⚍⚍⚎⚍⚏⚎⚌⚍⚌⚌⚌
-$ ./iching.py -d ⚎⚌⚍⚏⚏⚎⚎⚍⚍⚎⚍⚏⚎⚌⚍⚌⚌⚌
+$  ./iching.py -g di -e 'test'
+⚌⚌⚌⚍⚎⚍⚌⚌⚌⚎⚏⚎⚎⚌⚍⚏⚏⚎⚎⚍⚍⚎⚍⚏⚎⚌⚍⚌⚌⚌⚌⚌⚌
+$ ./iching.py -d ⚌⚌⚌⚍⚎⚍⚌⚌⚌⚎⚏⚎⚎⚌⚍⚏⚏⚎⚎⚍⚍⚎⚍⚏⚎⚌⚍⚌⚌⚌⚌⚌⚌
 test
-./iching.py -g mono -e test
-⚊⚋⚊⚊⚋⚊⚋⚋⚋⚋⚊⚋⚊⚋⚋⚊⚋⚊⚊⚋⚋⚊⚋⚋⚊⚋⚊⚊⚋⚊⚊⚊⚊⚊⚊⚊
-./iching.py -d ⚊⚋⚊⚊⚋⚊⚋⚋⚋⚋⚊⚋⚊⚋⚋⚊⚋⚊⚊⚋⚋⚊⚋⚋⚊⚋⚊⚊⚋⚊⚊⚊⚊⚊⚊⚊
+$ ./iching.py -g mono -e 'test'
+⚊⚊⚊⚊⚊⚊⚋⚊⚊⚋⚋⚊⚊⚊⚊⚊⚊⚊⚊⚋⚋⚋⚊⚋⚊⚋⚊⚊⚋⚊⚋⚋⚋⚋⚊⚋⚊⚋⚋⚊⚋⚊⚊⚋⚋⚊⚋⚋⚊⚋⚊⚊⚋⚊⚊⚊⚊⚊⚊⚊⚊⚊⚊⚊⚊⚊
+$ ./iching.py -d '⚊⚊⚊⚊⚊⚊⚋⚊⚊⚋⚋⚊⚊⚊⚊⚊⚊⚊⚊⚋⚋⚋⚊⚋⚊⚋⚊⚊⚋⚊⚋⚋⚋⚋⚊⚋⚊⚋⚋⚊⚋⚊⚊⚋⚋⚊⚋⚋⚊⚋⚊⚊⚋⚊⚊⚊⚊⚊⚊⚊⚊⚊⚊⚊⚊⚊'
 test
 ```
 
@@ -142,8 +140,8 @@ test
 
 ```bash
 $ ./iching.py -b32 -e 'test'
-䷎䷑䷒䷗䷆䷝䷀
-$ ./iching.py -b32 -d '䷎䷑䷒䷗䷆䷝䷀'
+䷀䷄䷀䷀䷆䷝䷃䷅䷎䷍䷚䷀䷀
+$ ./iching.py -b32 -d '䷀䷄䷀䷀䷆䷝䷃䷅䷎䷍䷚䷀䷀'
 test
 ```
 
@@ -151,9 +149,9 @@ test
 
 ```bash
 $ ./iching.py -b32 -oh -e 'test'
-Hexagram Offset: 9
-䷗䷚䷛䷠䷏䷦䷉
-$ ./iching.py -b32 -oh 9 -d '䷗䷚䷛䷠䷏䷦䷉'
+Hexagram Offset: 17
+䷑䷕䷑䷑䷗䷮䷔䷖䷟䷞䷫䷑䷑
+$ ./iching.py -b32 -oh 17 -d '䷑䷕䷑䷑䷗䷮䷔䷖䷟䷞䷫䷑䷑'
 test
 ```
 
@@ -161,9 +159,9 @@ test
 
 ```bash
 $ ./iching.py -sb -e 'test'
-Base64 Key: rOuy0aYGvnp9o7Q8qLH5i62XNRhCjDZklKewUS/1+4VTfIPcWgAbx3MtzEmFdsJB
-䷏䷒䷐䷩䷏䷃
-$ ./iching.py -bk 'rOuy0aYGvnp9o7Q8qLH5i62XNRhCjDZklKewUS/1+4VTfIPcWgAbx3MtzEmFdsJB' -d '䷏䷒䷐䷩䷏䷃'
+Base64 Key: ye/bQpoUstiAI7BCVMwJmEnGjaH26fYT53FK8PcRDhd+O4gSrvuW0LZklNq9xzX1
+䷵䷕䷵䷆䷺䷾䷄䷻䷺䷵䷵
+$ ./iching.py -bk 'ye/bQpoUstiAI7BCVMwJmEnGjaH26fYT53FK8PcRDhd+O4gSrvuW0LZklNq9xzX1' -d '䷵䷕䷵䷆䷺䷾䷄䷻䷺䷵䷵'
 test
 ```
 
@@ -171,10 +169,10 @@ test
 
 ```bash
 $ ./iching.py -b32 -sb -oh -e 'test'
-Base32 Key: RMWT7YSCF34EQPLX5OVH6DANZGK2JBIU
-Hexagram Offset: 28
-䷜䷲䷵䷩䷴䷨䷞
-$ ./iching.py -b32 -bk 'RMWT7YSCF34EQPLX5OVH6DANZGK2JBIU' -oh 28 -d '䷜䷲䷵䷩䷴䷨䷞'
+Base32 Key: IXPC6HMWYZR7JDQ4FUOK2VL5TG3ENBAS
+Hexagram Offset: 11
+䷏䷥䷏䷏䷔䷌䷧䷙䷪䷚䷜䷏䷏
+$ ./iching.py -b32 -bk 'IXPC6HMWYZR7JDQ4FUOK2VL5TG3ENBAS' -oh 11 -d '䷏䷥䷏䷏䷔䷌䷧䷙䷪䷚䷜䷏䷏'
 test
 ```
 
@@ -182,12 +180,12 @@ test
 
 ```bash
 $ ./iching.py -b32 -sb -oh -sh -e 'test'
-Base32 Key: AYJWX26DCS3BFUNZPGL4R7MVKIE5QTHO
-Hexagram Key: ䷏䷇䷊䷕䷛䷉䷞䷗䷐䷖䷙䷅䷈䷌䷎䷍䷑䷢䷆䷝䷚䷜䷡䷘䷔䷠䷟䷒䷣䷄䷓䷋
-䷜䷌䷊䷟䷚䷙䷏
-$ ./iching.py -b32 -bk AYJWX26DCS3BFUNZPGL4R7MVKIE5QTHO \
-    -hk ䷏䷇䷊䷕䷛䷉䷞䷗䷐䷖䷙䷅䷈䷌䷎䷍䷑䷢䷆䷝䷚䷜䷡䷘䷔䷠䷟䷒䷣䷄䷓䷋ \
-    -d ䷜䷌䷊䷟䷚䷙䷏
+Base32 Key: 24GKQHOR3VECPZ6AXUBJFDNI5SMT7YWL
+Hexagram Key: ䷍䷌䷠䷔䷘䷢䷜䷑䷒䷎䷞䷋䷕䷡䷛䷣䷤䷙䷓䷐䷗䷚䷖䷥䷦䷏䷝䷊䷩䷨䷧䷟
+䷕䷔䷕䷕䷋䷨䷎䷙䷠䷧䷣䷕䷕
+$ ./iching.py -b32 -bk '24GKQHOR3VECPZ6AXUBJFDNI5SMT7YWL' \
+    -hk '䷍䷌䷠䷔䷘䷢䷜䷑䷒䷎䷞䷋䷕䷡䷛䷣䷤䷙䷓䷐䷗䷚䷖䷥䷦䷏䷝䷊䷩䷨䷧䷟' \
+    -d ䷕䷔䷕䷕䷋䷨䷎䷙䷠䷧䷣䷕䷕
 test
 ```
 
@@ -195,12 +193,12 @@ test
 
 ```bash
 $ ./iching.py -sb -sh -e 'test'
-Base64 Key: HSGtm3plsyX4+c6UwqO5vYaA8/2QMLhejCuNKgJRP19VozkDxEdTbFfrIZiWn70B
-Hexagram Key: ䷹䷴䷩䷡䷐䷶䷗䷭䷄䷯䷛䷼䷟䷂䷠䷳䷒䷵䷽䷁䷙䷰䷾䷆䷔䷫䷿䷺䷌䷱䷥䷻䷚䷤䷊䷘䷃䷜䷇䷪䷑䷲䷝䷍䷅䷕䷢䷷䷏䷧䷞䷨䷈䷸䷀䷖䷬䷣䷎䷮䷋䷉䷓䷦
-䷯䷤䷖䷡䷯䷛
-$ ./iching.py -bk HSGtm3plsyX4+c6UwqO5vYaA8/2QMLhejCuNKgJRP19VozkDxEdTbFfrIZiWn70B \
-    -hk ䷹䷴䷩䷡䷐䷶䷗䷭䷄䷯䷛䷼䷟䷂䷠䷳䷒䷵䷽䷁䷙䷰䷾䷆䷔䷫䷿䷺䷌䷱䷥䷻䷚䷤䷊䷘䷃䷜䷇䷪䷑䷲䷝䷍䷅䷕䷢䷷䷏䷧䷞䷨䷈䷸䷀䷖䷬䷣䷎䷮䷋䷉䷓䷦ \
-    -d ䷯䷤䷖䷡䷯䷛
+Base64 Key: X2lDQathoiVpLy9j5ZIMx+6NrwHFs/R8GJ7EYcKgPSAv0BzufqmWbOdnT3ekC1U4
+Hexagram Key: ䷅䷴䷃䷕䷮䷿䷦䷭䷻䷘䷨䷁䷹䷑䷢䷪䷛䷒䷌䷳䷲䷤䷽䷚䷋䷵䷏䷣䷉䷇䷂䷷䷬䷫䷞䷯䷈䷥䷾䷰䷀䷗䷊䷙䷓䷸䷐䷎䷧䷼䷡䷝䷍䷩䷄䷜䷠䷆䷟䷔䷖䷺䷱䷶
+䷼䷯䷼䷕䷴䷰䷾䷎䷴䷼䷼
+$ ./iching.py -bk 'X2lDQathoiVpLy9j5ZIMx+6NrwHFs/R8GJ7EYcKgPSAv0BzufqmWbOdnT3ekC1U4' \
+    -hk '䷅䷴䷃䷕䷮䷿䷦䷭䷻䷘䷨䷁䷹䷑䷢䷪䷛䷒䷌䷳䷲䷤䷽䷚䷋䷵䷏䷣䷉䷇䷂䷷䷬䷫䷞䷯䷈䷥䷾䷰䷀䷗䷊䷙䷓䷸䷐䷎䷧䷼䷡䷝䷍䷩䷄䷜䷠䷆䷟䷔䷖䷺䷱䷶' \
+    -d '䷼䷯䷼䷕䷴䷰䷾䷎䷴䷼䷼'
 test
 ```
 
