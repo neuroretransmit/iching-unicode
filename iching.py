@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-import random
 import lzma
+import random
 from argparse import ArgumentParser, Namespace
 from base64 import b16encode, b16decode, b32encode, b32decode, b64encode, b64decode
 from sys import stderr
@@ -178,4 +178,6 @@ if __name__ == "__main__":
                 base_key=argparse_namespace.base_key,
                 hexagram_offset=int(argparse_namespace.offset_hexagrams),
                 hexagram_key=argparse_namespace.hexagram_key))
+
+
     main()
