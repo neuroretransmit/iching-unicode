@@ -18,9 +18,11 @@ COMPRESSION_FILTER = [{'id': lzma.FILTER_LZMA2}]
 
 # Functor for handling decoding and stripping padding where necessary
 ENCODER = {
-    B16: lambda x: b16encode(x).decode(ENCODING),
-    B32: lambda x: b32encode(x).decode(ENCODING).replace('=', ''),
-    B64: lambda x: b64encode(x).decode(ENCODING).replace('=', '')
+    B16: lambda x: b16encode(lzma.compress(x, format=COMPRESSION_FORMAT, filters=COMPRESSION_FILTER)).decode(ENCODING),
+    B32: lambda x: b32encode(lzma.compress(x, format=COMPRESSION_FORMAT, filters=COMPRESSION_FILTER)).decode(
+        ENCODING).replace('=', ''),
+    B64: lambda x: b64encode(lzma.compress(x, format=COMPRESSION_FORMAT, filters=COMPRESSION_FILTER)).decode(
+        ENCODING).replace('=', '')
 }
 
 # Functor for handling decoding and padding when necessary
@@ -78,7 +80,6 @@ def encrypt(secret: bytes, base: int = 64, shuffle_base: bool = False, offset_he
     :param ngrams: style of ngram to be used ['mono', 'di', 'tri', 'hex']
     :return: encrypted unicode hexagrams
     """
-    secret = lzma.compress(secret, format=COMPRESSION_FORMAT, filters=COMPRESSION_FILTER)
     base_key = BASE_DEFAULT_CHARSETS[base]
     if shuffle_base:
         base_key = ''.join(random.sample(BASE_DEFAULT_CHARSETS[base], base))
