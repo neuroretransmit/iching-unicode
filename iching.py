@@ -113,8 +113,6 @@ if __name__ == "__main__":
             parser.error("can't encrypt file and message simultaneously")
         elif argparse_namespace.encrypt_file and argparse_namespace.decrypt_file:
             parser.error("can't encrypt and decrypt file and message simultaneously")
-        if argparse_namespace.decrypt and argparse_namespace.ngrams != 'hex':
-            eprintc('-g can be omitted during decryption', warn=True)
         bases = BASE_DEFAULT_CHARSETS.keys()
         if argparse_namespace.base not in bases:
             parser.error('base must be one of %s' % set(bases))
