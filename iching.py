@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
-import lzma
 import random
 from argparse import ArgumentParser, Namespace
 from base64 import b16encode, b16decode, b32encode, b32decode, b64encode, b64decode
+from lzma import compress, decompress, FORMAT_RAW, FILTER_LZMA2
 from sys import stderr
 
 from const import ENCODING, \
@@ -11,28 +11,26 @@ from const import ENCODING, \
     NGRAMS_ENCRYPT_MAPPING, HEXAGRAMS
 from helper import eprintc, deduce_ngram_type, translate_ngrams_to_hexagrams
 
-# Containerless compression (shorter messages lose larger fingerprint from container)
-COMPRESSION_FORMAT = lzma.FORMAT_RAW
 # Required filter with use of lzma.FORMAT_RAW
-COMPRESSION_FILTER = [{'id': lzma.FILTER_LZMA2}]
+COMPRESSION_FILTER = [{'id': FILTER_LZMA2}]
 
-# Functor for handling decoding and stripping padding where necessary
+# Functor for handling encoding/containerless compression (shorter messages lose larger fingerprint from container) and
+# stripping padding where necessary
 ENCODER = {
-    B16: lambda x: b16encode(lzma.compress(x, format=COMPRESSION_FORMAT, filters=COMPRESSION_FILTER)).decode(ENCODING),
-    B32: lambda x: b32encode(lzma.compress(x, format=COMPRESSION_FORMAT, filters=COMPRESSION_FILTER)).decode(
+    B16: lambda x: b16encode(compress(x, format=FORMAT_RAW, filters=COMPRESSION_FILTER)).decode(ENCODING),
+    B32: lambda x: b32encode(compress(x, format=FORMAT_RAW, filters=COMPRESSION_FILTER)).decode(
         ENCODING).replace('=', ''),
-    B64: lambda x: b64encode(lzma.compress(x, format=COMPRESSION_FORMAT, filters=COMPRESSION_FILTER)).decode(
+    B64: lambda x: b64encode(compress(x, format=FORMAT_RAW, filters=COMPRESSION_FILTER)).decode(
         ENCODING).replace('=', '')
 }
 
-# Functor for handling decoding and padding when necessary
+# Functor for handling decoding/containerless decompression and padding where necessary
 DECODER = {
-    B16: lambda x: lzma.decompress(b16decode(x),
-                                   format=COMPRESSION_FORMAT, filters=COMPRESSION_FILTER).decode(ENCODING),
-    B32: lambda x: lzma.decompress(b32decode(x + '=' * ((8 - (len(x) % 8)) % 8)),
-                                   format=COMPRESSION_FORMAT, filters=COMPRESSION_FILTER).decode(ENCODING),
-    B64: lambda x: lzma.decompress(b64decode(x + '=' * ((4 - len(x) % 4) % 4)),
-                                   format=COMPRESSION_FORMAT, filters=COMPRESSION_FILTER).decode(ENCODING)
+    B16: lambda x: decompress(b16decode(x), format=FORMAT_RAW, filters=COMPRESSION_FILTER).decode(ENCODING),
+    B32: lambda x: decompress(b32decode(x + '=' * ((8 - (len(x) % 8)) % 8)), format=FORMAT_RAW,
+                              filters=COMPRESSION_FILTER).decode(ENCODING),
+    B64: lambda x: decompress(b64decode(x + '=' * ((4 - len(x) % 4) % 4)), format=FORMAT_RAW,
+                              filters=COMPRESSION_FILTER).decode(ENCODING)
 }
 
 
