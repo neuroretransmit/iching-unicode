@@ -7,14 +7,6 @@
 
 ## FAQ
 
-### *Why?*
-
-1. Invulnerable to cribbing.
-2. Invulnerable to genetic algorithms/hill-climbing.
-3. Computationally inexpensive to encrypt/decrypt.
-4. No heavy math skills required to understand.
-5. Brute-force is moot. You are attacking the intermediate representation of compressed data (without compression container).
-
 #### *Why the I Ching?*
 
 It conveniently has 64 hexagrams, it was between that and codons. It also has the bonus feature of consisting of
@@ -25,25 +17,6 @@ monograms, digrams, trigrams, and hexagrams, which can all be related to each ot
 Actually, no. If this was simply a base conversion I'd agree with you, however - this is character-level encryption on
 the intermediate representation of the compressed data in baseN via shuffling the mapping of the base64 charset to I Ching
 hexagrams and leaks no entropy.
-
-### *Okay, but certainly there must be an efficient attack... right?*
-
-Let's think about this...
-
-1. You are essentially trying to attack a massive number.
-2. You must know the secret's text encoding or lack thereof.
-3. The data is compressed without a compression container.
-4. You have no means of checking whether the text (or raw bytes) are valid without decoding from its base numbering
-system and knowing how to decompress before decoding. Your key search space is 64<sup>64</sup> in base64 (if the
-encrypted message is long enough to include 64 unique characters).
-4. Even if your encrypted message is, say, 10 characters...
-    * t = time to compute one permutation, lets say 0.045045440404036347 seconds
-    * 10<sup>64</sup> * t = 4.50454404×10<sup>62</sup> seconds
-    * Full run time: 5.2135926389×10<sup>57</sup> Days
-5. Genetic algorithms/hill-climbing will not be able to attack this, I'm 99% positive this is not feasible. Since this
-leaks no entropy, you can limit the range of chunk-sizes to the character encoding (if you know it), however it will
-create any characters you want in that set and give you valid decodes. If anyone has a valid fitness function for attack
-I'd love to see it and subvert it.
 
 ## Usage
 
