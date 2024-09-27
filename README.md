@@ -12,12 +12,6 @@
 It conveniently has 64 hexagrams, it was between that and codons. It also has the bonus feature of consisting of
 monograms, digrams, trigrams, and hexagrams, which can all be related to each other and change the ciphertext.
 
-### *Isn't this security through obscurity?*
-
-Actually, no. If this was simply a base conversion I'd agree with you, however - this is character-level encryption on
-the intermediate representation of the compressed data in baseN via shuffling the mapping of the base64 charset to I Ching
-hexagrams and leaks no entropy.
-
 ## Usage
 
 ```
